@@ -23,6 +23,7 @@ from mplsoccer import Pitch  # noqa: E402
 from scipy.ndimage import gaussian_filter  # noqa: E402
 
 from profiles import Season, match_highlights  # noqa: E402
+import manifest  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -552,7 +553,29 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--round", type=int)
     ap.add_argument("--out", default="out")
+    ap.add_argument("--pending", action="store_true",
+                    help="liste les journées à traiter (sans rapport ou avec des matchs nouveaux)")
+    ap.add_argument("--record-artifact", nargs=2, metavar=("JOURNEE", "SLUG"),
+                    help="note l'artefact publié pour une journée")
     args = ap.parse_args()
+
+    latest = max(match_files(), key=lambda f: f.name[:10])
+    season_name = latest.parent.name
+    if args.pending:
+        rounds = {}
+        for f in latest.parent.glob("*.json"):
+            if f.name.endswith("_heatmap.json"):
+                continue
+            g = json.loads(f.read_text())["general"]
+            rounds.setdefault(str(g["matchRound"]), []).append(str(g["matchId"]))
+        todo = manifest.pending(season_name, rounds)
+        print(" ".join(map(str, todo)) if todo else "AUCUNE")
+        return
+    if args.record_artifact:
+        manifest.record_artifact(season_name, args.record_artifact[0], args.record_artifact[1])
+        print("Artefact noté")
+        return
+
     rnd = pick_round(args.round)
 
     files = [f for f in match_files() if json.loads(f.read_text())["general"].get("matchRound") == rnd]

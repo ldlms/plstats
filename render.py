@@ -13,6 +13,8 @@ analysis.json :
 }
 """
 import argparse
+
+import manifest
 import shutil
 import subprocess
 import base64
@@ -396,6 +398,7 @@ def main():
         pdf_dir = ROOT / "reports" / S["season"]
         pdf_dir.mkdir(parents=True, exist_ok=True)
         make_pdf(page, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
+        manifest.record_report(S["season"], S["round"], [m["id"] for m in ms])
 
 
 def make_pdf(page, outdir, pdf):
