@@ -6,6 +6,8 @@ source .venv/bin/activate
 
 git pull -q --rebase
 python collect.py "$@"
+# Données d'événements WhoScored (n'échoue jamais : on réessaiera au prochain passage)
+python collect_ws.py || true
 
 git add data
 if ! git diff --cached --quiet; then
