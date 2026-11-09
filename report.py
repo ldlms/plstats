@@ -619,6 +619,9 @@ def main():
     ap.add_argument("--out", default="out")
     ap.add_argument("--pending", action="store_true",
                     help="liste les journées à traiter (sans rapport ou avec des matchs nouveaux)")
+    ap.add_argument("--ready", action="store_true",
+                    help="avec --pending : seulement les journées dont tous les matchs ont leurs données WhoScored")
+    ap.add_argument("--limit", type=int, default=0, help="avec --pending : nombre max de journées")
     ap.add_argument("--record-artifact", nargs=2, metavar=("JOURNEE", "SLUG"),
                     help="note l'artefact publié pour une journée")
     args = ap.parse_args()
@@ -633,6 +636,14 @@ def main():
             g = json.loads(f.read_text())["general"]
             rounds.setdefault(str(g["matchRound"]), []).append(str(g["matchId"]))
         todo = manifest.pending(season_name, rounds)
+        if args.ready:
+            ws_dir = DATA / "whoscored" / season_name
+            miss_f = ws_dir / "_missing.json"
+            miss = json.loads(miss_f.read_text()) if miss_f.exists() else {}
+            todo = [r for r in todo if all((ws_dir / f"{i}_ws.json").exists() or miss.get(i, 0) >= 3
+                                           for i in rounds[str(r)])]
+        if args.limit:
+            todo = todo[:args.limit]
         print(" ".join(map(str, todo)) if todo else "AUCUNE")
         return
     if args.record_artifact:

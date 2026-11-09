@@ -8,8 +8,11 @@ les heures (`sync_drive.sh`) : la tâche ne touche ni au VPS ni à Drive.
 
 ```bash
 pip install -q --break-system-packages -r requirements-report.txt
-python report.py --pending        # journées à traiter, ou AUCUNE
+python report.py --pending --ready --limit 3   # au plus 3 journées prêtes, ou AUCUNE
 ```
+
+`--ready` : seulement les journées dont tous les matchs ont leurs données WhoScored (ou ont été
+abandonnés après 3 essais). Au plus 3 journées par passage pour ménager le quota.
 
 `AUCUNE` : rien de nouveau. Arrêter là et le dire en une phrase.
 
@@ -27,7 +30,7 @@ Lire `out/JN/summary.json` en entier, puis écrire :
 
 ```json
 {
-  "intro": ["2 paragraphes : le fil rouge de la journée, la surprise au regard du xG, le match marquant"],
+  "intro": ["2 paragraphes : le fil rouge de la journée, la surprise au regard du xG, le match marquant (pour une journée ancienne, rester sur ce que dit summary.json, sans référence à la suite de la saison)"],
   "matches": {
     "<matchId>": {
       "headline": "une phrase qui dit ce qui s'est passé",

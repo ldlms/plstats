@@ -6,9 +6,11 @@ Premier League de WhoScored (le lien contient « domicile-extérieur », unique 
 ouvre sa page avec un vrai navigateur (Playwright) et enregistre une version allégée :
   data/whoscored/<saison>/<fotmobId>_ws.json
 
-Usage : python collect_ws.py            # matchs des 10 derniers jours
-        python collect_ws.py --days 30
-Rythme volontairement lent (quelques secondes entre deux pages).
+Usage : python collect_ws.py            # tous les matchs de la saison sans données (30 max par passage)
+        python collect_ws.py --days 10 --max 12
+Les matchs anciens qui ne sont plus listés sur la page Premier League sont cherchés sur
+les pages calendrier des équipes. Un match introuvable 3 fois de suite est abandonné
+(data/whoscored/<saison>/_missing.json). Rythme volontairement lent.
 """
 import argparse
 import json
@@ -56,8 +58,17 @@ def candidates(name):
     return out
 
 
+def missing_path(season):
+    return DATA / "whoscored" / season / "_missing.json"
+
+
+def load_missing(season):
+    p = missing_path(season)
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
 def fotmob_todo(days):
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(timezone.utc) - timedelta(days=days) if days else None
     todo = []
     for f in sorted(DATA.glob("matches/*/*.json")):
         if f.name.endswith("_heatmap.json"):
@@ -68,13 +79,13 @@ def fotmob_todo(days):
         if not st.get("finished"):
             continue
         ko = datetime.fromisoformat(st["utcTime"].replace("Z", "+00:00"))
-        if ko < since or datetime.now(timezone.utc) - ko < timedelta(hours=3):
+        if (since and ko < since) or datetime.now(timezone.utc) - ko < timedelta(hours=3):
             continue
         out = DATA / "whoscored" / f.parent.name / f"{g['matchId']}_ws.json"
-        if out.exists():
+        if out.exists() or load_missing(f.parent.name).get(str(g["matchId"]), 0) >= 3:
             continue
         todo.append({"fotmob_id": str(g["matchId"]), "home": g["homeTeam"]["name"],
-                     "away": g["awayTeam"]["name"], "kickoff": ko, "out": out})
+                     "away": g["awayTeam"]["name"], "kickoff": ko, "out": out, "season": f.parent.name})
     return todo
 
 
@@ -136,10 +147,24 @@ def extract(page):
         return None
 
 
+MATCH_LINK = re.compile(r'/[Mm]atches/(\d+)/([A-Za-z]+)/england-premier-league-\d{4}-\d{4}-([a-z0-9-]+)')
+TEAM_LINK = re.compile(r'/[Tt]eams/(\d+)/[Ss]how/([A-Za-z0-9-]+)')
+
+
+def collect_links(html, links):
+    for ws_id, _kind, rest in MATCH_LINK.findall(html):
+        links.setdefault(rest.lower(), ws_id)
+
+
+def find(m, links):
+    wanted = {f"{h}-{a}" for h in candidates(m["home"]) for a in candidates(m["away"])}
+    return next((links[k] for k in wanted if k in links), None)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--days", type=int, default=10)
-    ap.add_argument("--max", type=int, default=12, help="nombre max de pages de match par passage")
+    ap.add_argument("--days", type=int, default=0, help="0 = toute la saison")
+    ap.add_argument("--max", type=int, default=30, help="nombre max de pages de match par passage")
     args = ap.parse_args()
 
     todo = fotmob_todo(args.days)
@@ -155,19 +180,42 @@ def main():
         wait_challenge(page)
         page.wait_for_timeout(3000)
         links = {}
-        for ws_id, kind, rest in re.findall(r'/[Mm]atches/(\d+)/([A-Za-z]+)/england-premier-league-\d{4}-\d{4}-([a-z0-9-]+)',
-                                            page.content()):
-            links.setdefault(rest, ws_id)
-        log(f"{len(links)} match(s) listés sur WhoScored")
+        html = page.content()
+        collect_links(html, links)
+        log(f"{len(links)} match(s) listés sur la page Premier League")
+
+        # Matchs anciens : pages calendrier des équipes concernées
+        teams = {}
+        for tid, tslug in TEAM_LINK.findall(html):
+            teams.setdefault(tid, tslug)
+        unmatched = [m for m in todo[:args.max] if not find(m, links)]
+        if unmatched and teams:
+            log(f"{len(unmatched)} match(s) non listés : recherche sur {len(teams)} pages d'équipe")
+            for tid, tslug in teams.items():
+                if all(find(m, links) for m in unmatched):
+                    break
+                try:
+                    page.goto(f"https://www.whoscored.com/teams/{tid}/fixtures/{tslug}",
+                              wait_until="domcontentloaded", timeout=60000)
+                    if wait_challenge(page):
+                        page.wait_for_timeout(2500)
+                        collect_links(page.content(), links)
+                except Exception as e:
+                    log(f"Page équipe {tid} : {e!r}"[:160])
+                time.sleep(random.uniform(3, 6))
+            log(f"{len(links)} match(s) connus après les pages d'équipe")
 
         done = 0
         for m in todo:
             if done >= args.max:
                 break
-            wanted = {f"{h}-{a}" for h in candidates(m["home"]) for a in candidates(m["away"])}
-            ws_id = next((links[k] for k in wanted if k in links), None)
+            ws_id = find(m, links)
             if not ws_id:
                 log(f"Introuvable sur WhoScored : {m['home']} - {m['away']}")
+                miss = load_missing(m["season"])
+                miss[m["fotmob_id"]] = miss.get(m["fotmob_id"], 0) + 1
+                missing_path(m["season"]).parent.mkdir(parents=True, exist_ok=True)
+                missing_path(m["season"]).write_text(json.dumps(miss, indent=1))
                 continue
             url = f"https://www.whoscored.com/matches/{ws_id}/live"
             mcd = None
