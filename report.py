@@ -22,6 +22,8 @@ from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 from mplsoccer import Pitch  # noqa: E402
 from scipy.ndimage import gaussian_filter  # noqa: E402
 
+from profiles import Season, match_highlights  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 
@@ -394,20 +396,45 @@ def fig_team_heatmaps(m, path):
     save(fig, path)
 
 
-def fig_key_players(m, path):
+def fig_player(m, side, path):
+    p = m["key_players"][side]
+    color, tint = (HOME, HOME_TINT) if side == "home" else (AWAY, AWAY_TINT)
+    prof = p.get("profile") or {}
+    rows = prof.get("rows", [])
+    n = max(len(rows), 1)
+    fig = plt.figure(figsize=(FW, FW * 0.74 + 0.43 * n + 0.6))
+    gs = fig.add_gridspec(2, 1, height_ratios=[FW * 0.74, 0.43 * n + 0.6], hspace=0.12)
+    ax = fig.add_subplot(gs[0])
     pitch = new_pitch(pad_top=8, pad_bottom=1)
-    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.42))
-    for ax, side, color, tint in ((axes[0], "home", HOME, HOME_TINT), (axes[1], "away", AWAY, AWAY_TINT)):
-        p = m["key_players"][side]
-        if p:
-            draw_heat(ax, pitch, p["_pts"], color, tint, f"{p['name']} ({short(m[side])})",
-                      f"note {p['rating']:.1f} · attaque →")
-            if p["avg_x"] is not None:
-                pitch.scatter(p["avg_x"], p["avg_y"], s=90, ax=ax, facecolor=TEXT,
-                              edgecolor=SURFACE, linewidth=2, zorder=5)
+    draw_heat(ax, pitch, p["_pts"], color, tint, f"{p['name']} ({short(m[side])})",
+              f"note {p['rating']:.1f} · attaque →")
+    if p["avg_x"] is not None:
+        pitch.scatter(p["avg_x"], p["avg_y"], s=90, ax=ax, facecolor=TEXT, edgecolor=SURFACE,
+                      linewidth=2, zorder=5)
+    bx = fig.add_subplot(gs[1])
+    bx.set_facecolor(SURFACE)
+    bx.set_xlim(0, 112)
+    bx.set_ylim(n - 0.3, -1.25)
+    bx.axis("off")
+    if prof:
+        head = (f"Profil sur la saison : centile parmi {prof['pool_size']} {prof['group_label']}"
+                if prof["qualified"] else
+                f"Profil indicatif : seulement {prof['minutes']} min jouées cette saison")
+        bx.text(0, -0.95, head, fontsize=10.5, color=MUTED, va="center")
+    for i, r in enumerate(rows):
+        bx.barh(i + 0.18, 100, height=0.3, color=LINE, alpha=0.6, zorder=1)
+        if r["pct"] is not None:
+            strong = r["pct"] >= 80
+            bx.barh(i + 0.18, max(r["pct"], 1.5), height=0.3, color=color, alpha=1 if strong else 0.55, zorder=2)
+        if r["value"] is None:
+            val = "–"
+        elif r["unit"] == "%":
+            val = f"{r['value']:.0f}"
         else:
-            pitch.draw(ax=ax)
-    fig.subplots_adjust(hspace=0.12)
+            val = f"{r['value']:.2f}".rstrip("0").rstrip(".").replace(".", ",")
+        bx.text(0, i - 0.22, f"{r['label']}  ·  {val} {r['unit']}", fontsize=10, color=TEXT, va="center")
+        bx.text(103, i + 0.18, "–" if r["pct"] is None else str(r["pct"]), fontsize=11,
+                fontweight="bold", color=TEXT if (r["pct"] or 0) >= 80 else MUTED, va="center")
     save(fig, path)
 
 
@@ -447,12 +474,17 @@ def fig_momentum(m, path):
 
 
 # ---------------------------------------------------------------- assemblage
-def build_match(f, outdir):
+def build_match(f, outdir, season):
     d, heat = load_match(f)
     g, c = d["general"], d["content"]
     home_id = g["homeTeam"]["id"]
     teams = d["header"]["teams"]
     players = team_players(c, heat, home_id)
+    pstats = c.get("playerStats") or {}
+    for side in ("home", "away"):
+        for p in players[side]:
+            p["profile"] = season.profile(p["id"])
+            p["match_highlights"] = match_highlights(pstats.get(str(p["id"]), {}))
     shots = c.get("shotmap", {}).get("shots", [])
     lineup = c.get("lineup", {})
 
@@ -500,12 +532,17 @@ def build_match(f, outdir):
 
     figs = {}
     for name, fn in (("momentum", fig_momentum), ("shots", fig_shots), ("positions", fig_positions),
-                     ("heatmaps", fig_team_heatmaps), ("players", fig_key_players)):
+                     ("heatmaps", fig_team_heatmaps)):
         if name == "momentum" and not m["_momentum"]:
             continue
         p = outdir / f"{m['id']}_{name}.webp"
         fn(m, p)
         figs[name] = p.name
+    for side in ("home", "away"):
+        if m["key_players"][side]:
+            p = outdir / f"{m['id']}_player_{side}.webp"
+            fig_player(m, side, p)
+            figs[f"player_{side}"] = p.name
     m["figures"] = figs
 
     # Nettoyage pour le JSON : on retire les points bruts
@@ -529,13 +566,16 @@ def main():
     outdir = ROOT / args.out / f"J{rnd}"
     outdir.mkdir(parents=True, exist_ok=True)
 
+    season = Season(files[0].parent)
+    print(f"Base de comparaison : {season.matches} matchs, seuil {season.min_minutes} min")
     matches = []
     for f in files:
         print("→", f.name)
-        matches.append(build_match(f, outdir))
+        matches.append(build_match(f, outdir, season))
     matches.sort(key=lambda m: (m["kickoff_utc"] or "", m["home"]))
 
-    summary = {"round": int(rnd), "season": files[0].parent.name, "matches": matches}
+    summary = {"round": int(rnd), "season": files[0].parent.name, "matches": matches,
+               "profile_base": {"matches": season.matches, "min_minutes": season.min_minutes}}
     (outdir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
     print(f"OK : {len(matches)} matchs -> {outdir}")
 

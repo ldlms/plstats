@@ -13,6 +13,8 @@ analysis.json :
 }
 """
 import argparse
+import shutil
+import subprocess
 import base64
 import html
 import json
@@ -38,7 +40,7 @@ CSS = """
   --home: #3987e5;
   --away: #d95926;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, Inter, sans-serif;
   /* Mise en page : une colonne de lecture (~720px), cartes de match empilées. */
   color-scheme: dark;
 }
@@ -116,15 +118,39 @@ a { color: inherit; }
 .bar .b-home { background: var(--home); border-radius: 4px 0 0 4px; }
 .bar .b-away { background: var(--away); border-radius: 0 4px 4px 0; }
 
-figure { margin: 0; display: grid; gap: 6px; }
+.figs { display: grid; gap: 22px; }
+figure { margin: 0; display: grid; gap: 6px; align-content: start; }
 figure img { width: 100%; height: auto; display: block; border-radius: 8px; }
 figcaption { font-size: 14px; color: var(--muted); }
 .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--muted); }
 .legend ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
 .legend b { color: var(--text); font-variant-numeric: tabular-nums; display: inline-block; min-width: 1.8em; }
+.squad { border-top: 1px solid var(--line); padding-top: 12px; }
+.squad summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+.squad summary .muted { font-weight: 400; }
+.plist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
+.plist li { display: grid; gap: 2px; font-size: 15px; }
+.plist .pname { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.plist .pnum { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 1.8em; }
+.plist .prate { font-variant-numeric: tabular-nums; font-weight: 700; }
+.plist .pline { color: var(--muted); font-size: 14px; padding-left: 2.3em; }
+.tag { display: inline-block; font-size: 12.5px; padding: 2px 7px; border-radius: 99px; margin: 2px 4px 0 0;
+       border: 1px solid var(--line); color: var(--text); }
+.tag b { font-variant-numeric: tabular-nums; }
 .top { font-size: 14px; color: var(--muted); text-align: right; }
 footer { font-size: 13px; color: var(--muted); }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+@media print {
+  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--bg); }
+  .wrap { max-width: none; padding: 0 10px; }
+  .figs { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .figs .wide { grid-column: 1 / -1; width: 70%; justify-self: center; }
+  figcaption, .legend { font-size: 11px; }
+  figure, .board, .bars, .story, .plist li { break-inside: avoid; }
+  .match { break-before: page; }
+  .top { display: none; }
+}
+@page { size: A4; margin: 10mm 8mm; background: #0f1311; }
 @media (max-width: 420px) {
   body { font-size: 16px; }
   .board .team { font-size: 18px; }
@@ -187,6 +213,32 @@ def goal_line(g):
     return f"<li><span class=\"num\">{esc(g['minute'])}</span> {esc(g['scorer'])}{tag}</li>"
 
 
+def squad_block(m, side):
+    ps = [p for p in m["players"][side] if p.get("minutes")]
+    ps.sort(key=lambda p: (not p["starter"], -(p.get("rating") or 0)))
+    items = []
+    for p in ps:
+        prof = p.get("profile") or {}
+        if prof.get("strengths"):
+            tags = "".join(f'<span class="tag">{esc(t["label"])} <b>{t["pct"]}</b></span>' for t in prof["strengths"])
+        elif prof and not prof.get("qualified"):
+            tags = f'<span class="muted">Trop peu de minutes cette saison ({prof.get("minutes")} min) pour un profil.</span>'
+        else:
+            tags = '<span class="muted">Pas de point fort qui ressort nettement cette saison.</span>'
+        hl = p.get("match_highlights") or []
+        rate = f'<span class="prate">{fmt_num(p["rating"], 1)}</span>' if p.get("rating") else ""
+        sub = "" if p["starter"] else ' <span class="muted">(entré)</span>'
+        items.append(
+            f'<li><div class="pname"><span class="pnum">{esc(p["number"])}</span><span>{esc(p["name"])}{sub}</span>'
+            f'{rate}<span class="muted">{int(p["minutes"])} min</span></div>'
+            + (f'<div class="pline">Ce match : {esc(", ".join(hl))}</div>' if hl else "")
+            + f'<div class="pline">{tags}</div></li>')
+    color = "home" if side == "home" else "away"
+    return (f'<details class="squad"><summary><span class="dot {color}"></span> {esc(m[side])} : '
+            f'points forts des joueurs <span class="muted">({len(ps)})</span></summary>'
+            f'<ul class="plist">{"".join(items)}</ul></details>')
+
+
 def match_section(m, txt, outdir):
     st = m["stats"]
     sid = f"m{m['id']}"
@@ -233,13 +285,16 @@ def match_section(m, txt, outdir):
         "shots": "Chaque cercle est un tir, sa taille suit le xG. Cercle plein : but.",
         "positions": "Position moyenne des titulaires, calculée sur toutes leurs actions du match.",
         "heatmaps": "Zones où chaque équipe a eu ses actions (gardien exclu), les deux attaquant vers la droite.",
-        "players": "Heatmap du joueur le mieux noté de chaque équipe. Le point blanc marque sa position moyenne.",
+        "player_home": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
+        "player_away": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
     }
-    for name in ("momentum", "shots", "positions", "heatmaps", "players"):
+    figparts = []
+    for name in ("momentum", "shots", "positions", "heatmaps", "player_home", "player_away"):
         if name not in figs:
             continue
         alt = {"momentum": "Momentum du match", "shots": "Carte des tirs", "positions": "Positions moyennes",
-               "heatmaps": "Heatmaps des deux équipes", "players": "Heatmaps des joueurs clés"}[name]
+               "heatmaps": "Heatmaps des deux équipes", "player_home": "Fiche du joueur clé à domicile",
+               "player_away": "Fiche du joueur clé à l'extérieur"}[name]
         extra = ""
         if name == "positions":
             def lst(side):
@@ -249,8 +304,12 @@ def match_section(m, txt, outdir):
             extra = (f'<div class="legend"><div><span class="dot home"></span> {esc(m["home"])}'
                      f'<ol>{lst("home")}</ol></div><div><span class="dot away"></span> {esc(m["away"])}'
                      f'<ol>{lst("away")}</ol></div></div>')
-        parts.append(f'<figure><img src="{img(outdir / figs[name])}" alt="{esc(alt)} – {esc(m["home"])} '
-                     f'contre {esc(m["away"])}" loading="lazy"><figcaption>{caps[name]}</figcaption>{extra}</figure>')
+        wide = ' class="wide"' if name == "momentum" else ""
+        figparts.append(f'<figure{wide}><img src="{img(outdir / figs[name])}" alt="{esc(alt)} – {esc(m["home"])} '
+                        f'contre {esc(m["away"])}" loading="lazy"><figcaption>{caps[name]}</figcaption>{extra}</figure>')
+    parts.append('<div class="figs">' + "".join(figparts) + "</div>")
+    for side in ("home", "away"):
+        parts.append(squad_block(m, side))
     parts.append('<div class="top"><a href="#resultats">Retour aux résultats ↑</a></div>')
     parts.append("</section>")
     return "\n".join(parts)
@@ -260,6 +319,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--round", type=int, required=True)
     ap.add_argument("--out", default="out")
+    ap.add_argument("--pdf", action="store_true", help="produit aussi un PDF (Chrome headless)")
     args = ap.parse_args()
     outdir = ROOT / args.out / f"J{args.round}"
     S = json.loads((outdir / "summary.json").read_text())
@@ -308,6 +368,7 @@ def main():
     <div><dt>Grosse occasion</dt> <dd>situation où l'on attend un but (face au gardien, penalty, tir à bout portant).</dd></div>
     <div><dt>Momentum</dt> <dd>danger créé minute par minute (modèle FotMob) : au-dessus, l'équipe à domicile pousse ; en dessous, l'extérieur.</dd></div>
     <div><dt>Actions</dt> <dd>passes, duels, tirs, récupérations… chaque point de heatmap en est une.</dd></div>
+    <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>
   </dl>
 </aside>
 {''.join(match_section(m, A.get('matches', {}).get(m['id']), outdir) for m in ms)}
@@ -331,6 +392,35 @@ def main():
 </html>"""
     (outdir / "index.html").write_text(page)
     print(f"OK -> {outdir / 'index.html'} ({len(page) // 1024} Ko)")
+    if args.pdf:
+        make_pdf(page, outdir, f"PL {S['season']} - Journee {S['round']}.pdf")
+
+
+def make_pdf(page, outdir, name):
+    chrome = next((c for c in ("google-chrome", "chromium", "chromium-browser") if shutil.which(c)), None)
+    if not chrome:
+        print("PDF ignoré : Chrome introuvable")
+        return
+    import io
+    import re as _re
+    from PIL import Image
+
+    def to_jpeg(mt):
+        raw = base64.b64decode(mt.group(1))
+        im = Image.open(io.BytesIO(raw)).convert("RGB")
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=78, optimize=True)
+        return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+    printable = _re.sub(r"data:image/webp;base64,([A-Za-z0-9+/=]+)", to_jpeg, page)
+    tmp = outdir / "_print.html"
+    tmp.write_text(printable.replace('<details class="squad">', '<details class="squad" open>'))
+    pdf = outdir / name
+    subprocess.run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
+                    "--virtual-time-budget=5000", f"--print-to-pdf={pdf}", tmp.as_uri()],
+                   check=True, capture_output=True, timeout=180)
+    tmp.unlink()
+    print(f"OK -> {pdf} ({pdf.stat().st_size // 1024} Ko)")
 
 
 if __name__ == "__main__":
