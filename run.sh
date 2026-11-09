@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Lancé par cron : collecte puis pousse les nouvelles données sur GitHub.
+# Tout est dans une fonction : bash lit le script en entier avant que
+# git pull puisse le modifier.
+main() {
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$(readlink -f "$0")")"
 source .venv/bin/activate
 
 git pull -q --rebase
@@ -18,3 +21,6 @@ if ! git diff --cached --quiet; then
     sleep 5
   done
 fi
+}
+main "$@"
+exit
