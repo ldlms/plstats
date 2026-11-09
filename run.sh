@@ -10,5 +10,9 @@ python collect.py "$@"
 git add data
 if ! git diff --cached --quiet; then
   git commit -q -m "data: collecte $(date -u +%Y-%m-%d)"
-  git push -q
+  # quelqu'un (Claude) a pu pousser entre-temps : on rejoue nos commits par-dessus
+  for i in 1 2 3; do
+    git pull -q --rebase && git push -q && break
+    sleep 5
+  done
 fi

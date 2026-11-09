@@ -75,16 +75,11 @@ def match_files():
 
 
 def pick_round(arg):
+    """Journée demandée, sinon la plus récente (celle du dernier match joué)."""
     if arg:
         return str(arg)
-    latest = DATA / "latest.json"
-    if latest.exists():
-        rounds = [m.get("round") for m in json.loads(latest.read_text())["matches"]]
-        rounds = [int(r) for r in rounds if str(r).isdigit()]
-        if rounds:
-            return str(max(rounds))
-    rounds = [int(json.loads(f.read_text())["general"]["matchRound"]) for f in match_files()]
-    return str(max(rounds))
+    latest = max(match_files(), key=lambda f: f.name[:10])  # nom = AAAA-MM-JJ_...
+    return str(json.loads(latest.read_text())["general"]["matchRound"])
 
 
 def num(v):
