@@ -145,7 +145,55 @@ figcaption { font-size: 14px; color: var(--muted); }
 .top { font-size: 14px; color: var(--muted); text-align: right; }
 footer { font-size: 13px; color: var(--muted); }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.habits { display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--line);
+          border-radius: 10px; padding: 12px 14px; }
+.habits h4 { margin: 0; font-family: var(--font-display); font-size: 18px; text-transform: uppercase; }
+.hab-t { font-weight: 700; font-size: 15px; }
+.hab { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 3px; font-size: 15px; }
+.hab .arr { display: inline-block; width: 1.1em; color: var(--muted); font-size: 12px; }
+.habits p { font-size: 14px; margin-top: 4px; }
+details.more { border-top: 1px solid var(--line); padding-top: 12px; }
+details.more > summary { cursor: pointer; font-weight: 700; padding: 6px 0; font-size: 16px; }
+details.more > .figs { margin-top: 12px; }
+.ivz { display: grid; gap: 6px; }
+.ivz-t { display: flex; justify-content: space-between; font-family: var(--font-display); font-weight: 700;
+         font-size: 17px; gap: 8px; }
+.c-home { color: var(--home); } .c-away { color: var(--away); }
+.ivz-svg { width: 100%; height: auto; display: block; border-radius: 8px; background: #18201c; }
+.ivz-svg .pz { fill: #18201c; }
+.ivz-svg .pl { fill: none; stroke: #3d4943; stroke-width: 0.3; }
+.ivz-svg .pd { fill: #3d4943; }
+.ivz-svg .ht { fill: transparent; stroke: transparent; }
+.ivz-svg .hit { cursor: pointer; outline: none; }
+.ivz-svg .hit:focus-visible circle:not(.ht) { stroke: var(--text); stroke-width: 0.5; }
+.ivz-svg .s-home { fill: none; stroke: var(--home); stroke-width: 0.45; }
+.ivz-svg .s-away { fill: none; stroke: var(--away); stroke-width: 0.45; }
+.ivz-svg .s-home.goal { fill: var(--home); stroke: #141917; stroke-width: 0.5; }
+.ivz-svg .s-away.goal { fill: var(--away); stroke: #141917; stroke-width: 0.5; }
+.ivz-svg .lk-home { stroke: #d6e6fb; stroke-linecap: round; }
+.ivz-svg .lk-away { stroke: #fbdccb; stroke-linecap: round; }
+.ivz-svg .nd-home { fill: var(--home); stroke: #141917; stroke-width: 0.5; }
+.ivz-svg .nd-away { fill: var(--away); stroke: #141917; stroke-width: 0.5; }
+.ivz-svg .dp-home { fill: var(--home); opacity: 0.4; }
+.ivz-svg .dp-away { fill: var(--away); opacity: 0.4; }
+.ivz-svg .nt { fill: #fff; font-size: 2.7px; font-weight: 700; text-anchor: middle; dominant-baseline: central;
+               font-family: var(--font-body); pointer-events: none; }
+.ivz-svg .avg { stroke: var(--text); stroke-width: 0.25; stroke-dasharray: 1 1; opacity: 0.6; }
+.tip { position: absolute; z-index: 10; max-width: min(320px, calc(100vw - 16px)); background: var(--text); color: var(--bg);
+       font-size: 14px; line-height: 1.35; padding: 7px 10px; border-radius: 8px; pointer-events: none;
+       box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.print-only { display: none; }
+.tscroll { overflow-x: auto; }
+.xgt { width: 100%; border-collapse: collapse; font-size: 15px; }
+.xgt th { text-align: left; font-weight: 600; color: var(--muted); font-size: 13px; padding: 6px 6px;
+          border-bottom: 1px solid var(--line); white-space: nowrap; }
+.xgt td { padding: 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.xgt td.num, .xgt th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+.xgt th:first-child, .xgt td:first-child { text-align: right; width: 2em; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
 @media print {
+  .ivz, .tip { display: none !important; }
+  .print-only { display: block; width: 100%; height: auto; border-radius: 8px; }
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--bg); }
   .wrap { max-width: none; padding: 0 10px; }
   .figs { grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -227,7 +275,8 @@ def squad_block(m, side):
         if prof.get("strengths"):
             tags = "".join(f'<span class="tag">{esc(t["label"])} <b>{t["pct"]}</b></span>' for t in prof["strengths"])
         elif prof and not prof.get("qualified"):
-            tags = f'<span class="muted">Trop peu de minutes cette saison ({prof.get("minutes")} min) pour un profil.</span>'
+            tags = (f'<span class="muted">Trop tôt pour un profil ({prof.get("apps")} match'
+                    f'{"s" if (prof.get("apps") or 0) > 1 else ""}, {prof.get("minutes")} min).</span>')
         else:
             tags = '<span class="muted">Pas de point fort qui ressort nettement cette saison.</span>'
         hl = p.get("match_highlights") or []
@@ -242,6 +291,204 @@ def squad_block(m, side):
     return (f'<details class="squad"><summary><span class="dot {color}"></span> {esc(m[side])} : '
             f'points forts des joueurs <span class="muted">({len(ps)})</span></summary>'
             f'<ul class="plist">{"".join(items)}</ul></details>')
+
+
+# ------------------------------------------------------------------ SVG interactifs
+PW, PH = 105.0, 68.0
+
+
+def svg_pitch():
+    a = (9.15 ** 2 - 5.5 ** 2) ** 0.5
+    return (
+        '<rect x="0" y="0" width="105" height="68" class="pz"/>'
+        '<g class="pl">'
+        '<rect x="0" y="0" width="105" height="68"/>'
+        '<line x1="52.5" y1="0" x2="52.5" y2="68"/>'
+        '<circle cx="52.5" cy="34" r="9.15"/>'
+        '<rect x="0" y="13.84" width="16.5" height="40.32"/><rect x="88.5" y="13.84" width="16.5" height="40.32"/>'
+        '<rect x="0" y="24.84" width="5.5" height="18.32"/><rect x="99.5" y="24.84" width="5.5" height="18.32"/>'
+        f'<path d="M16.5 {34 - a:.2f} A9.15 9.15 0 0 1 16.5 {34 + a:.2f}"/>'
+        f'<path d="M88.5 {34 - a:.2f} A9.15 9.15 0 0 0 88.5 {34 + a:.2f}"/>'
+        '</g><circle cx="11" cy="34" r="0.35" class="pd"/><circle cx="94" cy="34" r="0.35" class="pd"/>'
+        '<circle cx="52.5" cy="34" r="0.35" class="pd"/>'
+    )
+
+
+def svg_wrap(inner, label):
+    return (f'<svg class="ivz-svg" viewBox="-1 -1 107 70" role="img" aria-label="{esc(label)}">'
+            f'{svg_pitch()}{inner}</svg>')
+
+
+def tipattr(text):
+    return f'data-tip="{esc(text)}" tabindex="0"'
+
+
+def svg_shots(m):
+    out = []
+    for sh in sorted(m.get("shots_data", []), key=lambda s: s["kind"] == "but"):
+        x, y = sh["x"], sh["y"]                       # y vers le haut, attaque vers la droite
+        cx, cy = (x, PH - y) if sh["side"] == "home" else (PW - x, y)
+        r = 0.8 + 4.0 * (sh["xg"] ** 0.5)
+        team = m["home_short"] if sh["side"] == "home" else m["away_short"]
+        sit = {"Penalty": "penalty", "FromCorner": "corner", "SetPiece": "coup de pied arrêté",
+               "FreeKick": "coup franc", "FastBreak": "contre-attaque"}.get(sh["situation"], "")
+        tip = f"{sh['player']} ({team}) · {sh['minute']} · xG {fmt_num(sh['xg'], 2)} · {sh['kind']}" + (f" · {sit}" if sit else "")
+        cls = f"s-{sh['side']}" + (" goal" if sh["kind"] == "but" else "")
+        out.append(f'<g class="hit" {tipattr(tip)}><circle cx="{cx:.1f}" cy="{cy:.1f}" r="{max(r, 2.6):.2f}" class="ht"/>'
+                   f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r:.2f}" class="{cls}"/></g>')
+    return svg_wrap("".join(out), f"Carte des tirs {m['home']} contre {m['away']}")
+
+
+def svg_possession(m, side):
+    stc = m["structure"][side]
+    nodes = {n["name"]: n for n in stc["possession_shape"]}
+    links = stc.get("pass_links", [])
+    nmax = max([l["n"] for l in links] + [1])
+    tmax = max([n["n"] for n in nodes.values()] + [1])
+    out = []
+    h = stc.get("possession_block_height_m")
+    if h:
+        out.append(f'<g {tipattr(f"Hauteur moyenne du bloc avec le ballon : {fmt_num(h, 0)} m de son but")}>'
+                   f'<line x1="{h:.1f}" y1="0" x2="{h:.1f}" y2="68" class="avg"/>'
+                   f'<rect x="{h - 1.2:.1f}" y="0" width="2.4" height="68" class="ht"/></g>')
+    for l in sorted(links, key=lambda l: l["n"]):
+        a, b = nodes.get(l["a"]), nodes.get(l["b"])
+        if not a or not b:
+            continue
+        w = 0.25 + 1.4 * l["n"] / nmax
+        op = 0.25 + 0.6 * l["n"] / nmax
+        out.append(f'<g class="hit" {tipattr(f"{a["name"]} ↔ {b["name"]} : {l["n"]} passes")}>'
+                   f'<line x1="{a["x"]}" y1="{PH - a["y"]:.1f}" x2="{b["x"]}" y2="{PH - b["y"]:.1f}" class="ht" stroke-width="3"/>'
+                   f'<line x1="{a["x"]}" y1="{PH - a["y"]:.1f}" x2="{b["x"]}" y2="{PH - b["y"]:.1f}" class="lk-{side}" '
+                   f'stroke-width="{w:.2f}" stroke-opacity="{op:.2f}"/></g>')
+    for n in nodes.values():
+        r = 2.0 + 1.6 * n["n"] / tmax
+        out.append(f'<g class="hit" {tipattr(f"{n["name"]} · {n["n"]} ballons joués (passes données ou reçues)")}>'
+                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="{r:.2f}" class="nd-{side}"/>'
+                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt">{esc(n["number"])}</text></g>')
+    return svg_wrap("".join(out), f"{m[side]} avec le ballon")
+
+
+def svg_defence(m, side):
+    stc = m["structure"][side]
+    out = []
+    for x, y in stc.get("def_points", []):
+        out.append(f'<circle cx="{x}" cy="{PH - y:.1f}" r="0.55" class="dp-{side}"/>')
+    h = stc.get("defensive_actions_avg_height_m")
+    if h:
+        out.append(f'<g {tipattr(f"Hauteur moyenne des actions défensives : {fmt_num(h, 0)} m de son but")}>'
+                   f'<line x1="{h:.1f}" y1="0" x2="{h:.1f}" y2="68" class="avg"/>'
+                   f'<rect x="{h - 1.2:.1f}" y="0" width="2.4" height="68" class="ht"/></g>')
+    for n in stc.get("defensive_shape", []):
+        out.append(f'<g class="hit" {tipattr(f"{n["name"]} · {n["n"]} actions défensives (position moyenne)")}>'
+                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="2.4" class="nd-{side}"/>'
+                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt">{esc(n["number"])}</text></g>')
+    return svg_wrap("".join(out), f"{m[side]} sans le ballon")
+
+
+TIP_JS = """
+(function () {
+  var tip = document.createElement('div');
+  tip.className = 'tip'; tip.setAttribute('role', 'status'); tip.hidden = true;
+  document.body.appendChild(tip);
+  function show(el) {
+    tip.textContent = el.getAttribute('data-tip'); tip.hidden = false;
+    var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), document.documentElement.clientWidth - w - 8);
+    var y = r.top - h - 8; if (y < 8) y = r.bottom + 8;
+    tip.style.left = (x + window.scrollX) + 'px'; tip.style.top = (y + window.scrollY) + 'px';
+  }
+  function hide() { tip.hidden = true; }
+  document.addEventListener('pointerover', function (e) {
+    if (e.pointerType !== 'mouse') return; var t = e.target.closest('[data-tip]'); if (t) show(t);
+  });
+  document.addEventListener('pointerout', function (e) {
+    if (e.pointerType === 'mouse' && e.target.closest('[data-tip]')) hide();
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tip]'); if (t) show(t); else hide();
+  });
+  document.addEventListener('focusin', function (e) {
+    var t = e.target.closest('[data-tip]'); if (t) show(t);
+  });
+  document.addEventListener('focusout', hide);
+  window.addEventListener('scroll', hide, { passive: true });
+})();
+"""
+
+
+# ------------------------------------------------------------------ blocs HTML
+def habits_block(m):
+    ctx = m.get("context")
+    if not ctx:
+        return ""
+    cols = []
+    for side in ("home", "away"):
+        h = ctx[side]["habits"]
+        name = m[f"{side}_short"]
+        if h["n_prev"] < 3:
+            body = f'<p class="muted">Pas encore assez de matchs pour comparer ({h["n_prev"]} avant celui-ci).</p>'
+        elif not h["deviations"]:
+            body = '<p class="muted">Rien d\'inhabituel : un match conforme à ses moyennes.</p>'
+        else:
+            items = []
+            for d in h["deviations"]:
+                arrow = "▲" if d["value"] > d["season_avg"] else "▼"
+                items.append(f'<li><span class="arr">{arrow}</span> {esc(d["label"])} : '
+                             f'<b>{fmt_num(d["value"], d["decimals"])}{esc(d["unit"])}</b> '
+                             f'<span class="muted">(moyenne {fmt_num(d["season_avg"], d["decimals"])}{esc(d["unit"])})</span></li>')
+            body = f'<ul class="hab">{"".join(items)}</ul>'
+        cols.append(f'<div><div class="hab-t"><span class="dot {side}"></span> {esc(name)} '
+                    f'<span class="muted">vs ses {h["n_prev"]} matchs précédents</span></div>{body}</div>')
+    return f'<div class="habits" aria-label="Par rapport à leurs habitudes"><h4>Par rapport à leurs habitudes</h4>{"".join(cols)}</div>'
+
+
+FIG_ALT = {
+    "momentum": "Momentum du match", "form": "Forme sur 5 matchs", "positions": "Positions moyennes",
+    "heatmaps": "Heatmaps des deux équipes", "shape_home": "Structure avec et sans ballon, domicile",
+    "shape_away": "Structure avec et sans ballon, extérieur", "creation_home": "Création d'occasions, domicile",
+    "creation_away": "Création d'occasions, extérieur", "player_home": "Fiche du joueur clé à domicile",
+    "player_away": "Fiche du joueur clé à l'extérieur", "shots": "Carte des tirs",
+}
+FIG_CAP = {
+    "momentum": "Qui pousse, minute par minute (modèle FotMob). Les triangles marquent les buts.",
+    "form": "Les 5 derniers matchs de chaque équipe, celui-ci compris : xG créés au-dessus, concédés en dessous. D = domicile, E = extérieur.",
+    "positions": "Position moyenne des titulaires, calculée sur toutes leurs actions du match.",
+    "heatmaps": "Zones où chaque équipe a eu ses actions (gardien exclu), les deux attaquant vers la droite.",
+    "creation_home": "Chaque flèche est une passe qui a mené à un tir ; en blanc, les passes décisives.",
+    "creation_away": "Même lecture pour l'équipe à l'extérieur, qui attaque elle aussi vers la droite.",
+    "player_home": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), profil sur la saison (90 = meilleur que 90 % des joueurs du même poste), puis ses notes match par match.",
+    "player_away": "Même lecture pour le joueur le mieux noté de l'équipe à l'extérieur.",
+}
+
+
+def static_fig(m, name, outdir, cap=None, extra="", wide=False):
+    figs = m.get("figures", {})
+    if name not in figs:
+        return ""
+    w = ' class="wide"' if wide else ""
+    return (f'<figure{w}><img src="{img(outdir / figs[name])}" alt="{esc(FIG_ALT[name])} – {esc(m["home"])} '
+            f'contre {esc(m["away"])}" loading="lazy"><figcaption>{cap or FIG_CAP.get(name, "")}</figcaption>{extra}</figure>')
+
+
+FOR_PRINT = False
+
+
+def dual_fig(m, name, outdir, svg_html, title, cap, extra=""):
+    """Graphe interactif à l'écran, image dans le PDF."""
+    figs = m.get("figures", {})
+    pimg = (f'<img class="print-only" src="{img(outdir / figs[name])}" alt="{esc(FIG_ALT[name])}">'
+            if FOR_PRINT and name in figs else "")
+    return (f'<figure><div class="ivz"><div class="ivz-t">{title}</div>{svg_html}</div>{pimg}'
+            f'<figcaption>{cap}</figcaption>{extra}</figure>')
+
+
+def numbers_legend(m, side):
+    ps = [p for p in m["players"][side] if p["starter"]]
+    ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
+    items = "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
+    return (f'<div class="legend one"><div><span class="dot {side}"></span> {esc(m[side])}'
+            f'<ol class="cols">{items}</ol></div></div>')
 
 
 def match_section(m, txt, outdir):
@@ -272,6 +519,8 @@ def match_section(m, txt, outdir):
             story.append('<ul class="keys">' + "".join(f"<li>{esc(k)}</li>" for k in txt["keys"]) + "</ul>")
         parts.append('<div class="story">' + "".join(story) + "</div>")
 
+    parts.append(habits_block(m))
+
     rows = [
         bar_row("Possession", *(st.get("possession") or [None, None]), suffix=" %"),
         bar_row("Expected goals (xG)", *(st.get("xg") or [None, None]), 2, 2),
@@ -279,12 +528,13 @@ def match_section(m, txt, outdir):
         bar_row("Tirs cadrés", *(st.get("shots_on_target") or [None, None])),
         bar_row("Grosses occasions", *(st.get("big_chances") or [None, None])),
         bar_row("Touches dans la surface adverse", *(st.get("touches_opp_box") or [None, None])),
-        bar_row("Part des actions dans le dernier tiers", *(m.get("final_third_share_pct") or [None, None]),
-                suffix=" %"),
     ]
     stc = m.get("structure")
     if stc:
         rows += [
+            bar_row("Passes dans la surface adverse", stc["home"]["box_entries_total"], stc["away"]["box_entries_total"]),
+            bar_row("Tirs dans les 10 s après une récupération", stc["home"]["shots_after_regain_10s"],
+                    stc["away"]["shots_after_regain_10s"]),
             bar_row("Ballons récupérés dans le camp adverse", stc["home"]["high_regains"], stc["away"]["high_regains"]),
             bar_row("Hauteur des actions défensives (m depuis son but)",
                     stc["home"]["defensive_actions_avg_height_m"], stc["away"]["defensive_actions_avg_height_m"]),
@@ -294,53 +544,84 @@ def match_section(m, txt, outdir):
             rows.append(f'<p class="muted" style="font-size:14px;text-align:center;margin:0 auto">Pressing (PPDA) : '
                         f'{fmt_num(ph, 1)} pour {esc(m["home_short"])}, {fmt_num(pa, 1)} pour {esc(m["away_short"])}. '
                         f'Plus c’est bas, plus l’équipe presse.</p>')
+    else:
+        rows.append(bar_row("Part des actions dans le dernier tiers", *(m.get("final_third_share_pct") or [None, None]),
+                            suffix=" %"))
     parts.append('<div class="bars" aria-label="Statistiques du match">' + "".join(rows) + "</div>")
 
-    figs = m.get("figures", {})
-    caps = {
-        "momentum": "Qui pousse, minute par minute. Les triangles marquent les buts.",
-        "shots": "Chaque cercle est un tir, sa taille suit le xG. Cercle plein : but.",
-        "positions": "Position moyenne des titulaires, calculée sur toutes leurs actions du match.",
-        "heatmaps": "Zones où chaque équipe a eu ses actions (gardien exclu), les deux attaquant vers la droite.",
-        "shape_home": "En haut, avec le ballon : position moyenne de chaque titulaire quand il passe ou reçoit le ballon (dans le jeu). Un trait relie deux joueurs qui se sont fait au moins 3 passes, plus épais s'ils s'en sont fait beaucoup. En bas, sans le ballon : chaque point est un tacle, une interception, une récupération ou un dégagement ; les numéros marquent la position moyenne de ces actions par joueur. Pointillés : hauteur moyenne.",
-        "shape_away": "Même lecture pour l'équipe à l'extérieur, qui attaque elle aussi vers la droite.",
-        "player_home": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
-        "player_away": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
-    }
-    figparts = []
-    for name in ("momentum", "shots", "positions", "shape_home", "shape_away", "heatmaps", "player_home", "player_away"):
-        if name not in figs:
-            continue
-        alt = {"momentum": "Momentum du match", "shots": "Carte des tirs", "positions": "Positions moyennes",
-               "heatmaps": "Heatmaps des deux équipes",
-               "shape_home": "Structure avec et sans ballon, équipe à domicile",
-               "shape_away": "Structure avec et sans ballon, équipe à l'extérieur", "player_home": "Fiche du joueur clé à domicile",
-               "player_away": "Fiche du joueur clé à l'extérieur"}[name]
-        extra = ""
-        if name in ("shape_home", "shape_away"):
-            side = name.split("_")[1]
+    # Toujours visible : la carte des tirs (interactive)
+    parts.append('<div class="figs">' + dual_fig(
+        m, "shots", outdir, svg_shots(m),
+        f'<span class="c-away">← {esc(m["away_short"])}</span><span class="c-home">{esc(m["home_short"])} →</span>',
+        "Chaque cercle est un tir, sa taille suit le xG ; plein = but. Touchez un tir pour le détail.") + "</div>")
+
+    # Le reste : dépliable
+    more = [static_fig(m, "momentum", outdir, wide=True), static_fig(m, "form", outdir)]
+    if stc:
+        for side in ("home", "away"):
+            more.append(dual_fig(m, f"shape_{side}", outdir,
+                                 f'{svg_possession(m, side)}<div class="ivz-t">{esc(m[side + "_short"])} sans le ballon</div>{svg_defence(m, side)}',
+                                 f'<span class="c-{side}">{esc(m[side + "_short"])} avec le ballon</span>',
+                                 "Avec le ballon : position moyenne de chaque titulaire quand il passe ou reçoit le ballon ; "
+                                 "un trait relie deux joueurs qui se sont fait au moins 3 passes. Sans le ballon : chaque point "
+                                 "est un tacle, une interception, une récupération ou un dégagement ; les numéros donnent la "
+                                 "position moyenne de ces actions. Pointillés : hauteur moyenne. Touchez un joueur ou un trait.",
+                                 numbers_legend(m, side)))
+        for side in ("home", "away"):
+            more.append(static_fig(m, f"creation_{side}", outdir))
+    else:
+        def lst(side):
             ps = [p for p in m["players"][side] if p["starter"]]
             ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
-            items = "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
-            extra = (f'<div class="legend one"><div><span class="dot {side}"></span> {esc(m[side])}'
-                     f'<ol class="cols">{items}</ol></div></div>')
-        if name == "positions":
-            def lst(side):
-                ps = [p for p in m["players"][side] if p["starter"]]
-                ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
-                return "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
-            extra = (f'<div class="legend"><div><span class="dot home"></span> {esc(m["home"])}'
-                     f'<ol>{lst("home")}</ol></div><div><span class="dot away"></span> {esc(m["away"])}'
-                     f'<ol>{lst("away")}</ol></div></div>')
-        wide = ' class="wide"' if name == "momentum" else ""
-        figparts.append(f'<figure{wide}><img src="{img(outdir / figs[name])}" alt="{esc(alt)} – {esc(m["home"])} '
-                        f'contre {esc(m["away"])}" loading="lazy"><figcaption>{caps[name]}</figcaption>{extra}</figure>')
-    parts.append('<div class="figs">' + "".join(figparts) + "</div>")
+            return "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
+        extra = (f'<div class="legend"><div><span class="dot home"></span> {esc(m["home"])}'
+                 f'<ol>{lst("home")}</ol></div><div><span class="dot away"></span> {esc(m["away"])}'
+                 f'<ol>{lst("away")}</ol></div></div>')
+        more.append(static_fig(m, "positions", outdir, extra=extra))
+    more += [static_fig(m, "heatmaps", outdir), static_fig(m, "player_home", outdir), static_fig(m, "player_away", outdir)]
+    more = [x for x in more if x]
+    parts.append(f'<details class="more"><summary>Tous les graphes du match <span class="muted">({len(more)})</span></summary>'
+                 f'<div class="figs">{"".join(more)}</div></details>')
     for side in ("home", "away"):
         parts.append(squad_block(m, side))
     parts.append('<div class="top"><a href="#resultats">Retour aux résultats ↑</a></div>')
     parts.append("</section>")
     return "\n".join(parts)
+
+
+def xg_table_html(S):
+    rows = S.get("xg_table") or []
+    if not rows:
+        return ""
+    trs = []
+    for r in rows:
+        diff = r["diff"]
+        sign = "+" if diff > 0 else "−" if diff < 0 else ""
+        trs.append(f'<tr><td class="num">{r["rank"]}</td><td>{esc(r.get("short") or r["team"])}</td><td class="num">{r["played"]}</td>'
+                   f'<td class="num"><b>{r["points"]}</b></td><td class="num">{fmt_num(r["xpts"], 1)}</td>'
+                   f'<td class="num">{sign}{fmt_num(abs(diff), 1)}</td><td class="num muted">{r["xrank"]}</td></tr>')
+    return f"""<section id="classement-xg" aria-labelledby="xg-t" style="display:grid;gap:10px">
+  <h2 id="xg-t">Classement au xG</h2>
+  <p class="muted" style="font-size:14px">Après la journée {S['round']}. xPts : points « mérités » d'après les occasions
+  (chaque tir de chaque match simulé avec son xG). Écart : points réels moins xPts. Rang xG : place au classement des xPts.</p>
+  <div class="tscroll"><table class="xgt"><thead><tr><th>#</th><th>Équipe</th><th>J</th><th>Pts</th><th>xPts</th>
+  <th>Écart</th><th>Rang xG</th></tr></thead><tbody>{''.join(trs)}</tbody></table></div>
+</section>"""
+
+
+def team_of_round_html(S, outdir):
+    xi = S.get("team_of_round")
+    figname = S.get("team_of_round_figure")
+    if not xi or not figname:
+        return ""
+    lst = "".join(f'<li><b>{fmt_num(p["rating"], 1)}</b> {esc(p["name"])} <span class="muted">({esc(p["team"])})</span></li>'
+                  for p in sorted(xi, key=lambda p: (p["role"], -p["py"])))
+    return f"""<section id="equipe-type" aria-labelledby="xi-t" style="display:grid;gap:10px">
+  <h2 id="xi-t">Équipe type de la journée</h2>
+  <figure><img src="{img(outdir / figname)}" alt="Équipe type de la journée {S['round']}"><figcaption>Meilleure note FotMob
+  à chaque poste (au moins 60 minutes jouées), en 4-3-3, placés selon leur position moyenne.</figcaption>
+  <div class="legend one"><ol class="cols">{lst}</ol></div></figure>
+</section>"""
 
 
 def main():
@@ -376,6 +657,21 @@ def main():
             f'<td class="t-away{" win" if sa > sh else ""}">{esc(m["away_short"])}</td></tr>')
 
     intro = "".join(f"<p>{esc(p)}</p>" for p in A.get("intro", []))
+    page = build_page(S, A, outdir, ms, rows, intro, span, title)
+    (outdir / "index.html").write_text(page)
+    print(f"OK -> {outdir / 'index.html'} ({len(page) // 1024} Ko)")
+    if args.pdf:
+        global FOR_PRINT
+        FOR_PRINT = True
+        printable = build_page(S, A, outdir, ms, rows, intro, span, title)
+        FOR_PRINT = False
+        pdf_dir = ROOT / "reports" / S["season"]
+        pdf_dir.mkdir(parents=True, exist_ok=True)
+        make_pdf(printable, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
+        manifest.record_report(S["season"], S["round"], [m["id"] for m in ms])
+
+
+def build_page(S, A, outdir, ms, rows, intro, span, title):
     body = f"""<div class="wrap">
 <header class="lede">
   <div class="eyebrow">Premier League {esc(S['season'])} · {span}</div>
@@ -388,6 +684,8 @@ def main():
   <p class="muted" style="font-size:14px">Touchez un score pour aller au match. « Contre le xG » : le résultat
   va à l'inverse des occasions créées.</p>
 </section>
+{xg_table_html(S)}
+{team_of_round_html(S, outdir)}
 <aside class="howto" aria-label="Comment lire">
   <strong>Comment lire</strong>
   <dl>
@@ -398,6 +696,8 @@ def main():
     <div><dt>Actions</dt> <dd>passes, duels, tirs, récupérations… chaque point de heatmap en est une.</dd></div>
     <div><dt>PPDA</dt> <dd>nombre de passes que l'adversaire peut faire dans sa propre moitié (ses 60 % de terrain) avant une action défensive : autour de 8, pressing très intense ; au-delà de 18, bloc bas qui attend.</dd></div>
     <div><dt>Avec / sans le ballon</dt> <dd>calculé à partir de chaque passe et chaque action défensive du match (données Opta via WhoScored).</dd></div>
+    <div><dt>Habitudes</dt> <dd>écarts les plus nets entre ce match et la moyenne des matchs précédents de l'équipe (données arrêtées à cette journée).</dd></div>
+    <div><dt>Graphes interactifs</dt> <dd>touchez un tir, un joueur ou un trait pour voir le détail. « Tous les graphes du match » déplie le reste.</dd></div>
     <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>
   </dl>
 </aside>
@@ -418,15 +718,10 @@ def main():
 </head>
 <body>
 {body}
+<script>{TIP_JS}</script>
 </body>
 </html>"""
-    (outdir / "index.html").write_text(page)
-    print(f"OK -> {outdir / 'index.html'} ({len(page) // 1024} Ko)")
-    if args.pdf:
-        pdf_dir = ROOT / "reports" / S["season"]
-        pdf_dir.mkdir(parents=True, exist_ok=True)
-        make_pdf(page, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
-        manifest.record_report(S["season"], S["round"], [m["id"] for m in ms])
+    return page
 
 
 def make_pdf(page, outdir, pdf):
@@ -447,7 +742,7 @@ def make_pdf(page, outdir, pdf):
 
     printable = _re.sub(r"data:image/webp;base64,([A-Za-z0-9+/=]+)", to_jpeg, page)
     tmp = outdir / "_print.html"
-    tmp.write_text(printable.replace('<details class="squad">', '<details class="squad" open>'))
+    tmp.write_text(printable.replace('<details class="', '<details open class="'))
     subprocess.run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                     "--virtual-time-budget=5000", f"--print-to-pdf={pdf}", tmp.as_uri()],
                    check=True, capture_output=True, timeout=180)

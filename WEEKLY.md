@@ -56,7 +56,18 @@ Règles :
   `pass_accuracy_open_play_pct`, `top_pass_links` (duos de passeurs). Le 3e paragraphe commence par
   « Avec et sans ballon : » et dit comment chaque équipe a pressé/défendu et construit. Comparaisons
   « le plus … de la journée » : vérifier sur les 20 équipes.
-- Points forts : `players[*].profile.strengths` (centiles saison par poste) quand ils expliquent
+- Contexte saison (données arrêtées à la journée, `data_until`) :
+  - `context.<side>.habits.deviations` : écarts nets à la moyenne des matchs précédents de l'équipe
+    (valeur, moyenne, nombre de matchs). C'est souvent la clé d'un match (« Forest a eu 22 % du
+    ballon contre 48 % d'habitude »).
+  - `context.<side>.form` : 5 derniers matchs (résultats, xG pour/contre).
+  - `xg_table` (au niveau de la journée) : points, xPts, écart, rang xG. Un 3e paragraphe d'intro
+    peut en tirer 1 ou 2 enseignements (sur- ou sous-performance nette).
+- Création (si `structure`) : `key_passes`, `box_entries` (par couloir), `shots_after_regain_10s`
+  et `goals_after_regain_10s` (contres), `fast_shots`.
+- `team_of_round` : l'équipe type est affichée automatiquement, pas besoin de la commenter.
+- Points forts : `players[*].profile.strengths`, `profile.similar` (profils proches),
+  `profile.history` (notes match par match) (centiles saison par poste) quand ils expliquent
   ce qui s'est passé (ex. un milieu à 95 en passes qui cassent les lignes qui a fait le match).
 - « moins bien noté du match » : vérifier sur **tous** les joueurs des deux équipes.
 - Format des nombres : virgule décimale (1,43), « 62 % », minutes « 90+2 ».

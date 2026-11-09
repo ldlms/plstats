@@ -27,6 +27,71 @@ def load(season_dir: Path, fotmob_id):
     return json.loads(f.read_text()) if f.exists() else None
 
 
+SHOT_TYPES = {"SavedShot", "MissedShots", "Goal", "ShotOnPost"}
+RECOVERY = {"BallRecovery", "Interception"}
+
+
+def channel(y):
+    """Couloir à partir d'un y WhoScored (100 = gauche)."""
+    return "gauche" if y > 66.7 else "droite" if y < 33.3 else "axe"
+
+
+def in_box(x, y):
+    return x >= 83 and 21.1 <= y <= 78.9
+
+
+def tsec(e):
+    return (e.get("min") or 0) * 60 + (e.get("sec") or 0)
+
+
+def creation(ws, tid, players):
+    """Passes clés, entrées dernier tiers / surface par couloir, tirs après récupération."""
+    ev = ws["events"]
+    key_passes = []
+    ft = {"gauche": 0, "axe": 0, "droite": 0}
+    box = {"gauche": 0, "axe": 0, "droite": 0}
+    for i, e in enumerate(ev):
+        if e["teamId"] != tid or e["type"] != "Pass" or e.get("x") is None or e.get("endX") is None:
+            continue
+        q = set(e.get("q") or [])
+        if e["outcome"] == "Successful" and not (SET_PIECES & q):
+            if e["x"] < 66.7 <= e["endX"]:
+                ft[channel(e["endY"])] += 1
+            if in_box(e["endX"], e["endY"]) and not in_box(e["x"], e["y"]):
+                box[channel(e["y"])] += 1
+        if q & {"KeyPass", "ShotAssist", "IntentionalGoalAssist"}:
+            nxt = next((f for f in ev[i + 1:i + 12] if f["teamId"] == tid and f["type"] in SHOT_TYPES), None)
+            key_passes.append({
+                "x": round(e["x"] * L / 100, 1), "y": round(e["y"] * W / 100, 1),
+                "endX": round(e["endX"] * L / 100, 1), "endY": round(e["endY"] * W / 100, 1),
+                "assist": bool(nxt and nxt["type"] == "Goal"),
+                "player": (players.get(e["playerId"]) or {}).get("name"),
+                "set_piece": bool(SET_PIECES & q),
+            })
+    # tirs dans les 10 s qui suivent une récupération, sans passe adverse entre les deux
+    fast = []
+    for i, e in enumerate(ev):
+        if e["teamId"] != tid or not (e["type"] in RECOVERY or (e["type"] == "Tackle" and e["outcome"] == "Successful")):
+            continue
+        t0 = tsec(e)
+        for f in ev[i + 1:i + 25]:
+            if f.get("period") != e.get("period") or tsec(f) - t0 > 10:
+                break
+            if f["teamId"] != tid and f["type"] == "Pass" and f["outcome"] == "Successful":
+                break
+            if f["teamId"] == tid and f["type"] in SHOT_TYPES:
+                fast.append({"min": f.get("min"), "goal": f["type"] == "Goal",
+                             "player": (players.get(f["playerId"]) or {}).get("name"),
+                             "recovered_at_m": round(e["x"] * L / 100, 1)})
+                break
+    return {
+        "key_passes": key_passes,
+        "final_third_entries": ft,
+        "box_entries": box,
+        "fast_shots": fast,
+    }
+
+
 def is_foul_committed(e):
     return e["type"] == "Foul" and e["outcome"] == "Unsuccessful"
 
@@ -112,7 +177,9 @@ def team_analysis(ws, side):
     poss_h, poss_w = spread(nodes)
     def_h, def_w = spread(def_nodes)
     top_links = sorted(edges, key=lambda e: -e["n"])[:3]
+    cr = creation(ws, tid, players)
     return {
+        "creation": cr,
         "team": team["name"],
         "nodes": nodes, "edges": edges, "def_points": def_pts, "def_nodes": def_nodes,
         "metrics": {
@@ -129,5 +196,12 @@ def team_analysis(ws, side):
             "top_pass_links": [{"from": by_id[l["a"]]["name"], "to": by_id[l["b"]]["name"], "passes": l["n"]}
                                for l in top_links],
             "most_involved": max(nodes, key=lambda n: n["n"])["name"] if nodes else None,
+            "key_passes": len(cr["key_passes"]),
+            "final_third_entries": cr["final_third_entries"],
+            "box_entries": cr["box_entries"],
+            "box_entries_total": sum(cr["box_entries"].values()),
+            "shots_after_regain_10s": len(cr["fast_shots"]),
+            "goals_after_regain_10s": sum(1 for f in cr["fast_shots"] if f["goal"]),
+            "fast_shots": cr["fast_shots"],
         },
     }

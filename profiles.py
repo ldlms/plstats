@@ -69,15 +69,18 @@ BY_GROUP = {
 
 
 class Season:
-    def __init__(self, season_dir: Path):
+    def __init__(self, season_dir: Path, until_date: str = None):
         agg = defaultdict(lambda: {"minutes": 0, "apps": 0, "sum": defaultdict(float),
                                    "att": defaultdict(float), "groups": defaultdict(int)})
         self.matches = 0
+        self.history = defaultdict(list)   # notes match par match
         for f in sorted(season_dir.glob("*.json")):
-            if f.name.endswith("_heatmap.json"):
+            if f.name.endswith("_heatmap.json") or (until_date and f.name[:10] > until_date):
                 continue
             d = json.loads(f.read_text())
             self.matches += 1
+            gen = d.get("general", {})
+            teams_names = (gen.get("homeTeam", {}).get("name"), gen.get("awayTeam", {}).get("name"))
             for pid, p in (d.get("content", {}).get("playerStats") or {}).items():
                 s = flatten(p)
                 mins = (s.get("minutes_played") or (0, None))[0] or 0
@@ -86,6 +89,10 @@ class Season:
                 a = agg[pid]
                 a["name"] = p.get("name")
                 a["team"] = p.get("teamName")
+                rating = (s.get("rating_title") or (None, None))[0]
+                opp = teams_names[1] if p.get("teamName") == teams_names[0] else teams_names[0]
+                self.history[pid].append({"date": f.name[:10], "round": gen.get("matchRound"),
+                                          "opponent": opp, "rating": rating, "minutes": mins})
                 a["minutes"] += mins
                 a["apps"] += 1
                 grp = 0 if p.get("isGoalkeeper") else p.get("usualPosition")
@@ -145,12 +152,39 @@ class Season:
             rows.append({"id": mid, "label": METRICS[mid][0], "unit": METRICS[mid][2],
                          "value": None if v is None else round(v, 2),
                          "pct": self.percentile(g, mid, v)})
-        qualified = a["minutes"] >= self.min_minutes
+        qualified = a["minutes"] >= self.min_minutes and a["apps"] >= 3
         strengths = sorted([r for r in rows if r["pct"] is not None and r["pct"] >= 80],
                            key=lambda r: -r["pct"])[:3] if qualified else []
         return {"group": g, "group_label": GROUP_LABEL[g], "minutes": a["minutes"], "apps": a["apps"],
+                "history": self.history.get(pid, []),
+                "similar": self.similar(pid) if qualified else [],
                 "qualified": qualified, "pool_size": len(self._pools[g].get(BY_GROUP[g][0], [])),
                 "rows": rows, "strengths": [{"label": r["label"], "pct": r["pct"]} for r in strengths]}
+
+
+def _vector(season, pid):
+    a = season.agg[pid]
+    g = a["group"]
+    return [season.percentile(g, mid, season._values[pid].get(mid)) or 50 for mid in BY_GROUP[g]]
+
+
+def _similar(season, pid, k=3):
+    a = season.agg.get(pid)
+    if not a or a["group"] is None:
+        return []
+    me = _vector(season, pid)
+    cands = []
+    for other, b in season.agg.items():
+        if other == pid or b["group"] != a["group"] or b["minutes"] < season.min_minutes:
+            continue
+        v = _vector(season, other)
+        dist = sum((x - y) ** 2 for x, y in zip(me, v)) ** 0.5
+        cands.append((dist, b["name"], b["team"]))
+    cands.sort()
+    return [{"name": n, "team": t, "distance": round(d, 1)} for d, n, t in cands[:k]]
+
+
+Season.similar = lambda self, pid, k=3: _similar(self, pid, k)
 
 
 def match_highlights(player):

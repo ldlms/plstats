@@ -25,6 +25,7 @@ from scipy.ndimage import gaussian_filter  # noqa: E402
 from profiles import Season, match_highlights  # noqa: E402
 import manifest  # noqa: E402
 import ws_analysis  # noqa: E402
+from season_context import SeasonContext  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -403,8 +404,11 @@ def fig_player(m, side, path):
     prof = p.get("profile") or {}
     rows = prof.get("rows", [])
     n = max(len(rows), 1)
-    fig = plt.figure(figsize=(FW, FW * 0.78 + 0.43 * n + 0.6))
-    gs = fig.add_gridspec(2, 1, height_ratios=[FW * 0.78, 0.43 * n + 0.6], hspace=0.12)
+    hist = [h for h in prof.get("history", []) if h.get("rating")]
+    hh = 1.9 if len(hist) >= 2 else 0
+    fig = plt.figure(figsize=(FW, FW * 0.78 + 0.43 * n + 0.6 + hh))
+    gs = fig.add_gridspec(3 if hh else 2, 1,
+                          height_ratios=[FW * 0.78, 0.43 * n + 0.6] + ([hh] if hh else []), hspace=0.12)
     ax = fig.add_subplot(gs[0])
     pitch = new_pitch(pad_top=12, pad_bottom=1)
     draw_heat(ax, pitch, p["_pts"], color, tint, f"{p['name']} ({short(m[side])})",
@@ -420,7 +424,7 @@ def fig_player(m, side, path):
     if prof:
         head = (f"Profil sur la saison : centile parmi {prof['pool_size']} {prof['group_label']}"
                 if prof["qualified"] else
-                f"Profil indicatif : seulement {prof['minutes']} min jouées cette saison")
+                f"Profil indicatif : trop tôt dans la saison ({prof['apps']} match{'s' if prof['apps'] > 1 else ''}, {prof['minutes']} min)")
         bx.text(0, -0.95, head, fontsize=10.5, color=MUTED, va="center")
     for i, r in enumerate(rows):
         bx.barh(i + 0.18, 100, height=0.3, color=LINE, alpha=0.6, zorder=1)
@@ -436,6 +440,27 @@ def fig_player(m, side, path):
         bx.text(0, i - 0.22, f"{r['label']}  ·  {val} {r['unit']}", fontsize=10, color=TEXT, va="center")
         bx.text(103, i + 0.18, "–" if r["pct"] is None else str(r["pct"]), fontsize=11,
                 fontweight="bold", color=TEXT if (r["pct"] or 0) >= 80 else MUTED, va="center")
+    if hh:
+        cx = fig.add_subplot(gs[2])
+        cx.set_facecolor(SURFACE)
+        xs = list(range(len(hist)))
+        ys = [h["rating"] for h in hist]
+        cx.plot(xs, ys, color=color, lw=2, zorder=2)
+        cx.scatter(xs[:-1], ys[:-1], s=22, color=color, zorder=3)
+        cx.scatter([xs[-1]], [ys[-1]], s=60, color=TEXT, edgecolor=SURFACE, zorder=4)
+        cx.axhline(st.mean(ys), color=LINE, lw=1, ls=(0, (3, 3)))
+        cx.set_ylim(min(ys + [6]) - 0.4, max(ys + [8]) + 0.6)
+        cx.set_xticks(xs)
+        cx.set_xticklabels([f"J{h['round']}" for h in hist], fontsize=8.5)
+        cx.tick_params(length=0, labelsize=8.5)
+        for sp in cx.spines.values():
+            sp.set_visible(False)
+        cx.text(0, 1.08, f"Notes sur la saison (moyenne {st.mean(ys):.1f})".replace(".", ","),
+                transform=cx.transAxes, fontsize=10.5, color=MUTED, va="bottom")
+        if prof.get("similar"):
+            names = ", ".join(f"{x['name']} ({short(x['team'])})" for x in prof["similar"])
+            cx.text(0, -0.42, f"Profils proches : {names}", transform=cx.transAxes, fontsize=9.5,
+                    color=TEXT, va="top", wrap=True)
     save(fig, path)
 
 
@@ -486,6 +511,74 @@ def fig_team_shape(m, side, ta, path):
     save(fig, path)
 
 
+def fig_form(m, path):
+    """Forme : xG créés (haut) et concédés (bas) sur les 5 derniers matchs, pour chaque équipe."""
+    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.0))
+    for ax, side, color in ((axes[0], "home", HOME), (axes[1], "away", AWAY)):
+        rows = m["context"][side]["form"]
+        ax.set_facecolor(SURFACE)
+        xs = list(range(len(rows)))
+        xf = [r["xg_for"] or 0 for r in rows]
+        xa = [-(r["xg_against"] or 0) for r in rows]
+        ax.bar(xs, xf, width=0.55, color=color, zorder=2)
+        ax.bar(xs, xa, width=0.55, color=MUTED, alpha=0.55, zorder=2)
+        ax.axhline(0, color=LINE, lw=1)
+        top = max([abs(v) for v in xf + xa] + [1.5])
+        ax.set_ylim(-top - 0.9, top + 0.6)
+        for x, r in zip(xs, rows):
+            ax.text(x, (r["xg_for"] or 0) + 0.12, f"{r['xg_for']:.1f}".replace(".", ","), ha="center",
+                    va="bottom", fontsize=11, color=TEXT)
+            ax.text(x, -(r["xg_against"] or 0) - 0.12, f"{r['xg_against']:.1f}".replace(".", ","),
+                    ha="center", va="top", fontsize=11, color=MUTED)
+        ax.set_xticks(xs)
+        ax.set_xticklabels([f"{short(r['opponent'])[:11]}\n{r['result']} {r['gf']}-{r['ga']} ({r['venue']})"
+                            for r in rows], fontsize=10.5)
+        ax.tick_params(length=0)
+        ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+        ax.set_xlim(-0.6, max(len(rows), 1) - 0.4)
+        ax.text(0, 1.04, f"{short(m[side])} : 5 derniers matchs", transform=ax.transAxes, fontsize=12,
+                fontweight="bold", color=color, ha="left", va="bottom")
+        ax.text(1, 1.04, "xG créés ↑  xG concédés ↓", transform=ax.transAxes, fontsize=9.5,
+                color=MUTED, ha="right", va="bottom")
+    fig.subplots_adjust(hspace=0.55)
+    save(fig, path)
+
+
+def fig_creation(m, side, cr, path):
+    """Passes qui ont mené à un tir (blanc : passe décisive), en jeu et sur coups de pied arrêtés."""
+    color = HOME if side == "home" else AWAY
+    pitch = new_pitch(pad_top=12, pad_bottom=1)
+    fig, ax = pitch.draw(figsize=(FW, FW * 0.78))
+    for kp in sorted(cr["key_passes"], key=lambda k: k["assist"]):
+        c = TEXT if kp["assist"] else color
+        pitch.arrows(kp["x"], kp["y"], kp["endX"], kp["endY"], ax=ax, color=c, width=1.6 if kp["assist"] else 1.2,
+                     headwidth=5, headlength=5, alpha=0.95 if kp["assist"] else 0.7, zorder=3)
+        pitch.scatter(kp["x"], kp["y"], s=14, ax=ax, color=c, zorder=4)
+    n = len(cr["key_passes"])
+    na = sum(1 for k in cr["key_passes"] if k["assist"])
+    b = cr["box_entries"]
+    panel_title(ax, f"{short(m[side])} : comment les occasions ont été créées",
+                f"{n} passes menant à un tir dont {na} décisive{'s' if na > 1 else ''} · "
+                f"passes dans la surface G {b['gauche']} / axe {b['axe']} / D {b['droite']}", color)
+    save(fig, path)
+
+
+def fig_team_of_round(xi, rnd, path):
+    pitch = new_pitch(pad_top=10, pad_bottom=1)
+    fig, ax = pitch.draw(figsize=(FW, FW * 0.78))
+    for p in xi:
+        pitch.scatter(p["px"], p["py"], s=360, ax=ax, facecolor=HOME, edgecolor=SURFACE, linewidth=2, zorder=4)
+        ax.text(p["px"], p["py"], f"{p['rating']:.1f}".replace(".", ","), ha="center", va="center",
+                fontsize=9, fontweight="bold", color="white", zorder=5)
+        ax.text(p["px"], p["py"] - 5.2, p["short"], ha="center", va="top", fontsize=9.5, color=TEXT, zorder=5,
+                bbox=dict(boxstyle="round,pad=0.15", fc=PITCH, ec="none", alpha=0.8))
+        ax.text(p["px"], p["py"] - 8.6, short(p["team"]), ha="center", va="top", fontsize=8, color=MUTED, zorder=5)
+    panel_title(ax, f"Équipe type de la journée {rnd}", "les meilleures notes FotMob par poste (60 min jouées au moins)", HOME)
+    save(fig, path)
+
+
 def fig_momentum(m, path):
     data = m["_momentum"]
     fig, ax = plt.subplots(figsize=(FW, FW * 0.46))
@@ -522,7 +615,7 @@ def fig_momentum(m, path):
 
 
 # ---------------------------------------------------------------- assemblage
-def build_match(f, outdir, season):
+def build_match(f, outdir, season, ctx):
     d, heat = load_match(f)
     g, c = d["general"], d["content"]
     home_id = g["homeTeam"]["id"]
@@ -580,6 +673,24 @@ def build_match(f, outdir, season):
                    "away": [s for s in shots if s["teamId"] != home_id and not s.get("isOwnGoal")]},
         "_momentum": c.get("momentum", {}).get("main", {}).get("data", []),
     }
+    m["context"] = {s_: {"habits": ctx.habits(m[s_], m["id"]), "form": ctx.form(m[s_], m["id"])}
+                    for s_ in ("home", "away")}
+    # données pour les graphes interactifs de la page
+    m["shots_data"] = []
+    for s_ in ("home", "away"):
+        for sh in m["_shots"][s_]:
+            kind = "but" if sh["eventType"] == "Goal" else "contré" if sh.get("isBlocked") else \
+                "cadré" if sh.get("isOnTarget") else "poteau" if sh["eventType"] == "Post" else "non cadré"
+            mins = f"{sh['min']}+{sh['minAdded']}'" if sh.get("minAdded") else f"{sh['min']}'"
+            m["shots_data"].append({"side": s_, "x": round(sh["x"], 1), "y": round(W - sh["y"], 1),
+                                    "xg": round(sh["expectedGoals"] or 0, 2), "player": sh.get("playerName"),
+                                    "minute": mins, "kind": kind, "situation": sh.get("situation")})
+    if struct:
+        for s_ in ("home", "away"):
+            by = {n["playerId"]: n for n in struct[s_]["nodes"]}
+            m["structure"][s_]["pass_links"] = [{"a": by[e["a"]]["name"], "b": by[e["b"]]["name"], "n": e["n"]}
+                                                for e in struct[s_]["edges"]]
+            m["structure"][s_]["def_points"] = [[round(a, 1), round(b, 1)] for a, b in struct[s_]["def_points"]]
     ft = m["final_third_actions"]
     tot = (ft["home"] + ft["away"]) or 1
     m["final_third_share_pct"] = [round(100 * ft["home"] / tot), round(100 * ft["away"] / tot)]
@@ -594,10 +705,17 @@ def build_match(f, outdir, season):
                 p = outdir / f"{m['id']}_shape_{side}.webp"
                 fig_team_shape(m, side, struct[side], p)
                 figs[f"shape_{side}"] = p.name
+                p = outdir / f"{m['id']}_creation_{side}.webp"
+                fig_creation(m, side, struct[side]["creation"], p)
+                figs[f"creation_{side}"] = p.name
             continue
         p = outdir / f"{m['id']}_{name}.webp"
         fn(m, p)
         figs[name] = p.name
+    if all(len(m["context"][s_]["form"]) >= 2 for s_ in ("home", "away")):
+        p = outdir / f"{m['id']}_form.webp"
+        fig_form(m, p)
+        figs["form"] = p.name
     for side in ("home", "away"):
         if m["key_players"][side]:
             p = outdir / f"{m['id']}_player_{side}.webp"
@@ -611,6 +729,32 @@ def build_match(f, outdir, season):
     m["players"] = {s: [clean(p) for p in m["players"][s]] for s in ("home", "away")}
     m["key_players"] = {s: clean(m["key_players"][s]) for s in ("home", "away")}
     return {k: v for k, v in m.items() if not k.startswith("_")}
+
+
+def team_of_round(matches):
+    """4-3-3 des meilleures notes (60 min mini), placé selon la position moyenne des joueurs."""
+    pool = {0: [], 1: [], 2: [], 3: []}
+    for m in matches:
+        for side in ("home", "away"):
+            for p in m["players"][side]:
+                if (p.get("minutes") or 0) >= 60 and p.get("rating") and p.get("role") in pool:
+                    role = 0 if p["gk"] else p["role"]
+                    pool[role].append({"name": p["name"], "short": p["short"], "team": m[side],
+                                       "rating": p["rating"], "avg_y": p.get("avg_y") or 34, "role": role,
+                                       "match_id": m["id"]})
+    need = {0: 1, 1: 4, 2: 3, 3: 3}
+    xs = {0: 7, 1: 28, 2: 54, 3: 83}
+    xi = []
+    for role, k in need.items():
+        best = sorted(pool[role], key=lambda p: -p["rating"])[:k]
+        if len(best) < k:
+            return None
+        best.sort(key=lambda p: -p["avg_y"])          # gauche en haut
+        for i, p in enumerate(best):
+            p["px"] = xs[role]
+            p["py"] = W / 2 if k == 1 else 8 + (W - 16) * (1 - i / (k - 1))
+            xi.append(p)
+    return xi
 
 
 def main():
@@ -659,15 +803,25 @@ def main():
     outdir = ROOT / args.out / f"J{rnd}"
     outdir.mkdir(parents=True, exist_ok=True)
 
-    season = Season(files[0].parent)
-    print(f"Base de comparaison : {season.matches} matchs, seuil {season.min_minutes} min")
+    cutoff = max(f.name[:10] for f in files)
+    season = Season(files[0].parent, until_date=cutoff)
+    ctx = SeasonContext(files[0].parent, cutoff)
+    print(f"Données jusqu'au {cutoff} : {season.matches} matchs, seuil profils {season.min_minutes} min")
     matches = []
     for f in files:
         print("→", f.name)
-        matches.append(build_match(f, outdir, season))
+        matches.append(build_match(f, outdir, season, ctx))
     matches.sort(key=lambda m: (m["kickoff_utc"] or "", m["home"]))
 
+    table = ctx.table()
+    for r in table:
+        r["short"] = short(r["team"])
+    xi = team_of_round(matches)
+    if xi:
+        fig_team_of_round(xi, rnd, outdir / "team_of_round.webp")
     summary = {"round": int(rnd), "season": files[0].parent.name, "matches": matches,
+               "data_until": cutoff, "xg_table": table, "team_of_round": xi,
+               "team_of_round_figure": "team_of_round.webp" if xi else None,
                "profile_base": {"matches": season.matches, "min_minutes": season.min_minutes}}
     (outdir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1))
     print(f"OK : {len(matches)} matchs -> {outdir}")
