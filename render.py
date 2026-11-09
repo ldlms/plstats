@@ -393,10 +393,12 @@ def main():
     (outdir / "index.html").write_text(page)
     print(f"OK -> {outdir / 'index.html'} ({len(page) // 1024} Ko)")
     if args.pdf:
-        make_pdf(page, outdir, f"PL {S['season']} - Journee {S['round']}.pdf")
+        pdf_dir = ROOT / "reports" / S["season"]
+        pdf_dir.mkdir(parents=True, exist_ok=True)
+        make_pdf(page, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
 
 
-def make_pdf(page, outdir, name):
+def make_pdf(page, outdir, pdf):
     chrome = next((c for c in ("google-chrome", "chromium", "chromium-browser") if shutil.which(c)), None)
     if not chrome:
         print("PDF ignoré : Chrome introuvable")
@@ -415,7 +417,6 @@ def make_pdf(page, outdir, name):
     printable = _re.sub(r"data:image/webp;base64,([A-Za-z0-9+/=]+)", to_jpeg, page)
     tmp = outdir / "_print.html"
     tmp.write_text(printable.replace('<details class="squad">', '<details class="squad" open>'))
-    pdf = outdir / name
     subprocess.run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                     "--virtual-time-budget=5000", f"--print-to-pdf={pdf}", tmp.as_uri()],
                    check=True, capture_output=True, timeout=180)
