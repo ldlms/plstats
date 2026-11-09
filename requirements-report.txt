@@ -1,0 +1,6 @@
+# Pour report.py / render.py (côté analyse, pas nécessaire sur le VPS)
+mplsoccer>=1.4
+matplotlib>=3.8
+numpy
+scipy
+pillow
