@@ -20,6 +20,7 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from curl_cffi import requests
 
@@ -68,19 +69,35 @@ def already_collected(match_id):
     return any(DATA.glob(f"matches/*/*_{match_id}.json"))
 
 
+def heatmap_candidates(url):
+    """heatmapUrl est relatif (/api/data/heatmap/...?heatmapUrl=<url directe>)."""
+    out = []
+    if url.startswith("/"):
+        out.append("https://www.fotmob.com" + url)
+    elif url.startswith("http"):
+        out.append(url)
+    inner = parse_qs(urlparse(url).query).get("heatmapUrl")
+    if inner:
+        out.append(inner[0])
+    return out
+
+
 def download_heatmap(url, dest_stem):
-    try:
-        r = session.get(url, timeout=25)
-        if r.status_code != 200:
-            return None
-        ctype = r.headers.get("content-type", "")
-        ext = "png" if "png" in ctype else "jpg" if "jpeg" in ctype else "svg" if "svg" in ctype else "bin"
-        path = dest_stem.with_name(dest_stem.name + f"_heatmap.{ext}")
-        path.write_bytes(r.content)
-        return path
-    except Exception as e:
-        log(f"Heatmap non récupérée : {e!r}")
-        return None
+    for u in heatmap_candidates(url):
+        try:
+            r = session.get(u, timeout=25)
+            if r.status_code != 200:
+                log(f"Heatmap HTTP {r.status_code} sur {u}")
+                continue
+            ctype = r.headers.get("content-type", "")
+            ext = ("json" if "json" in ctype else "png" if "png" in ctype
+                   else "jpg" if "jpeg" in ctype else "svg" if "svg" in ctype else "bin")
+            path = dest_stem.with_name(dest_stem.name + f"_heatmap.{ext}")
+            path.write_bytes(r.content)
+            return path
+        except Exception as e:
+            log(f"Heatmap non récupérée ({u}) : {e!r}")
+    return None
 
 
 def main():
@@ -136,7 +153,7 @@ def main():
         stem.with_suffix(".json").write_text(json.dumps(slim, ensure_ascii=False))
 
         heatmap_path = None
-        if isinstance(heatmap_url, str) and heatmap_url.startswith("http"):
+        if isinstance(heatmap_url, str) and heatmap_url:
             heatmap_path = download_heatmap(heatmap_url, stem)
 
         added.append({
