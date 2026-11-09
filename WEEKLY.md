@@ -31,7 +31,8 @@ Lire `out/JN/summary.json` en entier, puis écrire :
   "matches": {
     "<matchId>": {
       "headline": "une phrase qui dit ce qui s'est passé",
-      "paragraphs": ["le scénario (buts, tournants)", "ce que disent les chiffres (xG, occasions, positions, heatmaps)"],
+      "paragraphs": ["le scénario (buts, tournants)", "ce que disent les chiffres (xG, occasions, heatmaps)",
+                     "Avec et sans ballon : … (seulement si structure n'est pas null)"],
       "keys": ["3 points courts : joueur clé avec sa note, un chiffre fort, un point faible ou un fait notable"]
     }
   }
@@ -46,6 +47,12 @@ Règles :
 - Utiliser ce qui rend le match compréhensible : xG par période, xG coups de pied arrêtés / jeu,
   grosses occasions ratées, `shape` (hauteur du bloc et de la ligne défensive en mètres depuis son but),
   `final_third_share_pct`, `attacking_zones`, `momentum_phases`, cartons rouges.
+- `structure` (données WhoScored, peut être `null` si le match n'a pas été récupéré) : `ppda`
+  (bas = pressing intense), `high_regains` (ballons récupérés dans le camp adverse),
+  `defensive_actions_avg_height_m` (hauteur du bloc sans ballon), `possession_block_height_m`,
+  `pass_accuracy_open_play_pct`, `top_pass_links` (duos de passeurs). Le 3e paragraphe commence par
+  « Avec et sans ballon : » et dit comment chaque équipe a pressé/défendu et construit. Comparaisons
+  « le plus … de la journée » : vérifier sur les 20 équipes.
 - Points forts : `players[*].profile.strengths` (centiles saison par poste) quand ils expliquent
   ce qui s'est passé (ex. un milieu à 95 en passes qui cassent les lignes qui a fait le match).
 - « moins bien noté du match » : vérifier sur **tous** les joueurs des deux équipes.

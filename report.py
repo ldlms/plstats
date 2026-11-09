@@ -24,6 +24,7 @@ from scipy.ndimage import gaussian_filter  # noqa: E402
 
 from profiles import Season, match_highlights  # noqa: E402
 import manifest  # noqa: E402
+import ws_analysis  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -362,6 +363,11 @@ def fig_positions(m, path):
     save(fig, path)
 
 
+def panel_title(ax, title, subtitle, color):
+    ax.text(0, W + 8.2, title, ha="left", va="center", fontsize=12.5, fontweight="bold", color=color)
+    ax.text(0, W + 3.6, subtitle, ha="left", va="center", fontsize=10.5, color=MUTED)
+
+
 def heat_grid(pts, sigma=1.6):
     if not pts:
         return None
@@ -378,13 +384,12 @@ def draw_heat(ax, pitch, pts, color, tint, title, subtitle):
         ax.imshow(H.T, origin="lower", extent=[0, L, 0, W], cmap=cmap, vmin=0.04, vmax=1,
                   interpolation="bilinear", zorder=1, aspect="auto")
     pitch.draw(ax=ax)
-    ax.text(0, W + 4.4, title, ha="left", va="center", fontsize=12.5, fontweight="bold", color=color)
-    ax.text(L, W + 4.4, subtitle, ha="right", va="center", fontsize=10.5, color=MUTED)
+    panel_title(ax, title, subtitle, color)
 
 
 def fig_team_heatmaps(m, path):
-    pitch = new_pitch(pad_top=8, pad_bottom=1)
-    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.42))
+    pitch = new_pitch(pad_top=12, pad_bottom=1)
+    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.5))
     for ax, side, color, tint in ((axes[0], "home", HOME, HOME_TINT), (axes[1], "away", AWAY, AWAY_TINT)):
         pts = [pt for p in m["players"][side] if not p["gk"] for pt in p["_pts"]]
         draw_heat(ax, pitch, pts, color, tint, short(m[side]), f"{len(pts)} actions · attaque →")
@@ -398,10 +403,10 @@ def fig_player(m, side, path):
     prof = p.get("profile") or {}
     rows = prof.get("rows", [])
     n = max(len(rows), 1)
-    fig = plt.figure(figsize=(FW, FW * 0.74 + 0.43 * n + 0.6))
-    gs = fig.add_gridspec(2, 1, height_ratios=[FW * 0.74, 0.43 * n + 0.6], hspace=0.12)
+    fig = plt.figure(figsize=(FW, FW * 0.78 + 0.43 * n + 0.6))
+    gs = fig.add_gridspec(2, 1, height_ratios=[FW * 0.78, 0.43 * n + 0.6], hspace=0.12)
     ax = fig.add_subplot(gs[0])
-    pitch = new_pitch(pad_top=8, pad_bottom=1)
+    pitch = new_pitch(pad_top=12, pad_bottom=1)
     draw_heat(ax, pitch, p["_pts"], color, tint, f"{p['name']} ({short(m[side])})",
               f"note {p['rating']:.1f} · attaque →")
     if p["avg_x"] is not None:
@@ -431,6 +436,53 @@ def fig_player(m, side, path):
         bx.text(0, i - 0.22, f"{r['label']}  ·  {val} {r['unit']}", fontsize=10, color=TEXT, va="center")
         bx.text(103, i + 0.18, "–" if r["pct"] is None else str(r["pct"]), fontsize=11,
                 fontweight="bold", color=TEXT if (r["pct"] or 0) >= 80 else MUTED, va="center")
+    save(fig, path)
+
+
+def fig_team_shape(m, side, ta, path):
+    """Deux terrains : avec le ballon (réseau de passes) / sans le ballon (actions défensives)."""
+    color, tint = (HOME, HOME_TINT) if side == "home" else (AWAY, AWAY_TINT)
+    mt = ta["metrics"]
+    pitch = new_pitch(pad_top=12, pad_bottom=1)
+    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.5))
+    # Avec le ballon
+    ax = axes[0]
+    pitch.draw(ax=ax)
+    by_id = {n["playerId"]: n for n in ta["nodes"]}
+    nmax = max((e["n"] for e in ta["edges"]), default=1)
+    for e in sorted(ta["edges"], key=lambda e: e["n"]):
+        a, b = by_id[e["a"]], by_id[e["b"]]
+        w = 0.8 + 5.2 * e["n"] / nmax
+        ax.plot([a["x"], b["x"]], [a["y"], b["y"]], color=tint, lw=w, alpha=0.25 + 0.55 * e["n"] / nmax,
+                zorder=3, solid_capstyle="round")
+    tmax = max((n["n"] for n in ta["nodes"]), default=1)
+    for n in ta["nodes"]:
+        size = 150 + 330 * n["n"] / tmax
+        pitch.scatter(n["x"], n["y"], s=size, ax=ax, facecolor=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+        ax.text(n["x"], n["y"], str(n["number"]), ha="center", va="center", fontsize=10, fontweight="bold",
+                color="white", zorder=5)
+    if mt["possession_block_height_m"]:
+        ax.plot([mt["possession_block_height_m"]] * 2, [0, W], color=TEXT, lw=1, ls=(0, (4, 4)), alpha=0.6, zorder=2)
+    sub = f"bloc à {mt['possession_block_height_m']:.0f} m de son but · largeur {mt['possession_width_m']:.0f} m" \
+        if mt["possession_block_height_m"] else ""
+    panel_title(ax, f"{short(m[side])} avec le ballon", f"{sub} · attaque →", color)
+    # Sans le ballon
+    ax = axes[1]
+    pitch.draw(ax=ax)
+    if ta["def_points"]:
+        xs, ys = zip(*ta["def_points"])
+        pitch.scatter(xs, ys, s=22, ax=ax, facecolor=color, edgecolor="none", alpha=0.35, zorder=3)
+    for n in ta["def_nodes"]:
+        pitch.scatter(n["x"], n["y"], s=300, ax=ax, facecolor=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+        ax.text(n["x"], n["y"], str(n["number"]), ha="center", va="center", fontsize=10, fontweight="bold",
+                color="white", zorder=5)
+    h = mt["defensive_actions_avg_height_m"]
+    if h:
+        ax.plot([h, h], [0, W], color=TEXT, lw=1, ls=(0, (4, 4)), alpha=0.6, zorder=2)
+    ppda = f" · PPDA {mt['ppda']:.1f}".replace(".", ",") if mt["ppda"] else ""
+    hh = f"actions défensives à {h:.0f} m de son but en moyenne" if h else "actions défensives"
+    panel_title(ax, f"{short(m[side])} sans le ballon", f"{hh}{ppda}", color)
+    fig.subplots_adjust(hspace=0.12)
     save(fig, path)
 
 
@@ -488,6 +540,8 @@ def build_match(f, outdir, season):
         cands = [p for p in players[side] if not p["gk"] and p["rating"] and p["_pts"]]
         return max(cands, key=lambda p: p["rating"]) if cands else None
 
+    ws = ws_analysis.load(f.parent, g["matchId"])
+    struct = {s_: ws_analysis.team_analysis(ws, s_) for s_ in ("home", "away")} if ws else None
     potm = c.get("matchFacts", {}).get("playerOfTheMatch") or {}
     m = {
         "id": str(g["matchId"]),
@@ -516,6 +570,10 @@ def build_match(f, outdir, season):
             "rating": (potm.get("rating") or {}).get("num"),
         },
         "insights_en": [i.get("text") for i in c.get("matchFacts", {}).get("insights", [])],
+        "structure": {s_: struct[s_]["metrics"] | {
+            "possession_shape": [{k: n[k] for k in ("name", "number", "x", "y", "n")} for n in struct[s_]["nodes"]],
+            "defensive_shape": [{k: n[k] for k in ("name", "number", "x", "y", "n")} for n in struct[s_]["def_nodes"]],
+        } for s_ in ("home", "away")} if struct else None,
         "players": players,
         "key_players": {s: key_player(s) for s in ("home", "away")},
         "_shots": {"home": [s for s in shots if s["teamId"] == home_id and not s.get("isOwnGoal")],
@@ -530,6 +588,12 @@ def build_match(f, outdir, season):
     for name, fn in (("momentum", fig_momentum), ("shots", fig_shots), ("positions", fig_positions),
                      ("heatmaps", fig_team_heatmaps)):
         if name == "momentum" and not m["_momentum"]:
+            continue
+        if name == "positions" and struct:
+            for side in ("home", "away"):
+                p = outdir / f"{m['id']}_shape_{side}.webp"
+                fig_team_shape(m, side, struct[side], p)
+                figs[f"shape_{side}"] = p.name
             continue
         p = outdir / f"{m['id']}_{name}.webp"
         fn(m, p)

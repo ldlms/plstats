@@ -125,6 +125,9 @@ figure { margin: 0; display: grid; gap: 6px; align-content: start; }
 figure img { width: 100%; height: auto; display: block; border-radius: 8px; }
 figcaption { font-size: 14px; color: var(--muted); }
 .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--muted); }
+.legend.one { grid-template-columns: 1fr; }
+.legend ol.cols { display: block; columns: 2; column-gap: 16px; }
+.legend ol.cols li { break-inside: avoid; }
 .legend ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
 .legend b { color: var(--text); font-variant-numeric: tabular-nums; display: inline-block; min-width: 1.8em; }
 .squad { border-top: 1px solid var(--line); padding-top: 12px; }
@@ -279,6 +282,18 @@ def match_section(m, txt, outdir):
         bar_row("Part des actions dans le dernier tiers", *(m.get("final_third_share_pct") or [None, None]),
                 suffix=" %"),
     ]
+    stc = m.get("structure")
+    if stc:
+        rows += [
+            bar_row("Ballons récupérés dans le camp adverse", stc["home"]["high_regains"], stc["away"]["high_regains"]),
+            bar_row("Hauteur des actions défensives (m depuis son but)",
+                    stc["home"]["defensive_actions_avg_height_m"], stc["away"]["defensive_actions_avg_height_m"]),
+        ]
+        ph, pa = stc["home"]["ppda"], stc["away"]["ppda"]
+        if ph and pa:
+            rows.append(f'<p class="muted" style="font-size:14px;text-align:center;margin:0 auto">Pressing (PPDA) : '
+                        f'{fmt_num(ph, 1)} pour {esc(m["home_short"])}, {fmt_num(pa, 1)} pour {esc(m["away_short"])}. '
+                        f'Plus c’est bas, plus l’équipe presse.</p>')
     parts.append('<div class="bars" aria-label="Statistiques du match">' + "".join(rows) + "</div>")
 
     figs = m.get("figures", {})
@@ -287,17 +302,28 @@ def match_section(m, txt, outdir):
         "shots": "Chaque cercle est un tir, sa taille suit le xG. Cercle plein : but.",
         "positions": "Position moyenne des titulaires, calculée sur toutes leurs actions du match.",
         "heatmaps": "Zones où chaque équipe a eu ses actions (gardien exclu), les deux attaquant vers la droite.",
+        "shape_home": "En haut, avec le ballon : position moyenne de chaque titulaire quand il passe ou reçoit le ballon (dans le jeu). Un trait relie deux joueurs qui se sont fait au moins 3 passes, plus épais s'ils s'en sont fait beaucoup. En bas, sans le ballon : chaque point est un tacle, une interception, une récupération ou un dégagement ; les numéros marquent la position moyenne de ces actions par joueur. Pointillés : hauteur moyenne.",
+        "shape_away": "Même lecture pour l'équipe à l'extérieur, qui attaque elle aussi vers la droite.",
         "player_home": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
         "player_away": "Joueur le mieux noté : heatmap du match (point blanc = position moyenne), puis profil sur la saison. 90 = meilleur que 90 % des joueurs du même poste.",
     }
     figparts = []
-    for name in ("momentum", "shots", "positions", "heatmaps", "player_home", "player_away"):
+    for name in ("momentum", "shots", "positions", "shape_home", "shape_away", "heatmaps", "player_home", "player_away"):
         if name not in figs:
             continue
         alt = {"momentum": "Momentum du match", "shots": "Carte des tirs", "positions": "Positions moyennes",
-               "heatmaps": "Heatmaps des deux équipes", "player_home": "Fiche du joueur clé à domicile",
+               "heatmaps": "Heatmaps des deux équipes",
+               "shape_home": "Structure avec et sans ballon, équipe à domicile",
+               "shape_away": "Structure avec et sans ballon, équipe à l'extérieur", "player_home": "Fiche du joueur clé à domicile",
                "player_away": "Fiche du joueur clé à l'extérieur"}[name]
         extra = ""
+        if name in ("shape_home", "shape_away"):
+            side = name.split("_")[1]
+            ps = [p for p in m["players"][side] if p["starter"]]
+            ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
+            items = "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
+            extra = (f'<div class="legend one"><div><span class="dot {side}"></span> {esc(m[side])}'
+                     f'<ol class="cols">{items}</ol></div></div>')
         if name == "positions":
             def lst(side):
                 ps = [p for p in m["players"][side] if p["starter"]]
@@ -370,11 +396,13 @@ def main():
     <div><dt>Grosse occasion</dt> <dd>situation où l'on attend un but (face au gardien, penalty, tir à bout portant).</dd></div>
     <div><dt>Momentum</dt> <dd>danger créé minute par minute (modèle FotMob) : au-dessus, l'équipe à domicile pousse ; en dessous, l'extérieur.</dd></div>
     <div><dt>Actions</dt> <dd>passes, duels, tirs, récupérations… chaque point de heatmap en est une.</dd></div>
+    <div><dt>PPDA</dt> <dd>nombre de passes que l'adversaire peut faire dans sa propre moitié (ses 60 % de terrain) avant une action défensive : autour de 8, pressing très intense ; au-delà de 18, bloc bas qui attend.</dd></div>
+    <div><dt>Avec / sans le ballon</dt> <dd>calculé à partir de chaque passe et chaque action défensive du match (données Opta via WhoScored).</dd></div>
     <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>
   </dl>
 </aside>
 {''.join(match_section(m, A.get('matches', {}).get(m['id']), outdir) for m in ms)}
-<footer>Données FotMob (Opta), collectées automatiquement après chaque journée. Analyse et graphes générés par Claude.</footer>
+<footer>Données FotMob et WhoScored (Opta), collectées automatiquement après chaque journée. Analyse et graphes générés par Claude.</footer>
 </div>"""
 
     page = f"""<!DOCTYPE html>
