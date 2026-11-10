@@ -1,0 +1,138 @@
+{
+ "intro": [
+  "32 buts, dont deux matchs à sept : Manchester United bat Ipswich 5-2 avec un triplé de Bruno Fernandes, et Chelsea bat Brighton 4-3 avec seulement 26 % du ballon. Manchester City et Arsenal font le plein après deux journées.",
+  "Côté occasions, Hull est le cas le plus frappant : 3e avec 6 points, mais seulement 17e aux points « mérités » (1,6). Il gagne encore à Coventry (1-0) avec moins d'occasions, grâce à Konstantinos Tzolakis. À l'inverse, Manchester United (10e, 3 points) est 3e d'après ses occasions."
+ ],
+ "matches": {
+  "5795429": {
+   "headline": "Cherki et Haaland : City s'impose largement à Palace",
+   "paragraphs": [
+    "Erling Haaland a ouvert le score à la 17e, Rayan Cherki a marqué deux fois en cinq minutes (54e, 59e) et Haaland a conclu à la 84e. Le seul but de Palace est un contre-son-camp de Gianluigi Donnarumma (56e).",
+    "City a créé 2,21 xG contre 0,66 et cadré 9 tirs sur 18 ; Palace n'a cadré qu'un tir et a manqué ses 3 grosses occasions. Dean Henderson a encaissé plus que prévu (−0,92 but évité).",
+    "Avec et sans ballon : City a eu 72 % du ballon et a pressé haut (PPDA 9,0, 23 ballons récupérés dans le camp adverse). Palace, avec 4 changements dans son onze par rapport à la journée 1, a défendu à 34 m de son but."
+   ],
+   "keys": [
+    "Rayan Cherki : 2 buts, 3 occasions créées, note 9,1.",
+    "Phil Foden : 2 passes décisives.",
+    "Palace : un seul tir cadré."
+   ]
+  },
+  "5795431": {
+   "headline": "Forest tient Liverpool avec 31 % du ballon",
+   "paragraphs": [
+    "Dan Ndoye a ouvert le score pour Forest (24e), Alexander Isak a égalisé (60e), Morgan Gibbs-White a redonné l'avantage à Forest sur penalty (70e) et Víctor Muñoz a égalisé à la 82e.",
+    "Forest a créé plus que Liverpool (2,30 xG contre 1,75) et a eu 5 grosses occasions, dont 3 manquées. Liverpool avait le ballon (69 %) mais n'a tiré que 4 fois en première période.",
+    "Avec et sans ballon : Liverpool a pressé très haut (PPDA 5,7). Forest a défendu à 30 m de son but en 3-4-2-1 et n'a eu que 31 % des passes avant ses changements."
+   ],
+   "keys": [
+    "Morgan Gibbs-White : un but, une passe décisive, note 8,4.",
+    "Jérémy Jacquet : 24 passes qui cassent les lignes.",
+    "Alisson : −0,72 but évité."
+   ]
+  },
+  "5795425": {
+   "headline": "Bournemouth gâche 6 grosses occasions, Everton égalise à la 90+1",
+   "paragraphs": [
+    "Alex Scott a ouvert le score en contre à la 41e. Bournemouth a dominé la seconde période (1,68 xG contre 0,70) sans doubler la mise, et James Tarkowski a égalisé sur corner à la 90+1.",
+    "Bournemouth a eu 6 grosses occasions et les a toutes manquées ; Jordan Pickford a fait 4 arrêts (+0,90 but évité). Everton n'a presque plus rien créé après ses changements de l'heure de jeu (0,16 xG).",
+    "Avec et sans ballon : Bournemouth, avec le même onze qu'à la journée 1, a pressé fort (PPDA 8,2, 20 ballons récupérés dans le camp adverse)."
+   ],
+   "keys": [
+    "Alex Scott : un but, 9 ballons récupérés, note 8,3.",
+    "Bournemouth : 6 grosses occasions, toutes manquées.",
+    "James Tarkowski : l'égalisation à la 90+1 et 5 duels aériens gagnés."
+   ]
+  },
+  "5795428": {
+   "headline": "Hull gagne encore, sauvé par Tzolakis",
+   "paragraphs": [
+    "Coventry a dominé la première période (1,09 xG contre 0,01) sans marquer. Liam Millar, entré à la 59e, a donné la victoire à Hull en contre à la 82e.",
+    "Konstantinos Tzolakis a fait 3 arrêts pour +1,33 but évité, le meilleur total de la journée chez les gardiens. Coventry a eu 68 % du ballon et 1,29 xG au total.",
+    "Avec et sans ballon : Hull, en 5-4-1, n'a eu que 34 % des passes avant ses changements, puis 24 %. C'est pourtant après ces changements qu'il a créé l'essentiel de ses occasions (0,69 xG contre 0,20)."
+   ],
+   "keys": [
+    "Konstantinos Tzolakis : +1,33 but évité, note 8,4.",
+    "Liam Millar : le but, 23 minutes après son entrée.",
+    "Matt Grimes : 23 passes qui cassent les lignes."
+   ]
+  },
+  "5795434": {
+   "headline": "Newcastle gagne à Tottenham avec moins d'occasions",
+   "paragraphs": [
+    "Anthony Elanga (62e) puis Yoane Wissa sur corner (72e) ont marqué pour Newcastle.",
+    "Tottenham a plus tiré (17 contre 11) et créé un peu plus (1,12 xG contre 0,72), mais Lukás Hornícek a fait 4 arrêts (+0,91 but évité), alors qu'Antonín Kinský n'a arrêté aucun des 2 tirs cadrés de Newcastle.",
+    "Avec et sans ballon : Tottenham avait changé 5 joueurs dans son onze par rapport à la journée 1. Après ses changements de la 67e, il est passé en 4-4-2, a remonté son bloc (64 m) et a eu 70 % des passes, sans marquer."
+   ],
+   "keys": [
+    "Lewis Hall, le mieux noté du match (8,6).",
+    "Lukás Hornícek : 4 arrêts, +0,91 but évité.",
+    "Tottenham : 5 changements dans le onze."
+   ]
+  },
+  "5795427": {
+   "headline": "Chelsea bat Brighton avec 26 % du ballon",
+   "paragraphs": [
+    "Chelsea menait 3-0 après 32 minutes (Roméo Lavia sur corner, Pedro Neto, João Pedro en contre). Brighton est revenu par Malick Junior Yalcouyé (35e) et un contre-son-camp de João Pedro (63e), Cole Palmer a redonné deux buts d'avance (74e) et Pascal Groß a marqué le dernier but à la 90+6.",
+    "Avec 26 % du ballon, Chelsea a créé deux fois plus (2,93 xG contre 1,41), dont 1,03 xG sur coups de pied arrêtés. Bart Verbruggen a encaissé bien plus que prévu (−1,40 but évité, une erreur menant à un but).",
+    "Avec et sans ballon : Brighton a pressé (PPDA 6,4), mais Chelsea a joué direct : 69 % de passes réussies dans le jeu seulement, et des actions défensives à 31 m de son but."
+   ],
+   "keys": [
+    "Emiliano Martínez : 4 arrêts, +0,61 but évité, note 8,2.",
+    "Malick Junior Yalcouyé : un but, 4 dribbles réussis.",
+    "Chelsea : 3 changements dans le onze, dont Emiliano Martínez dans le but."
+   ]
+  },
+  "5795430": {
+   "headline": "Leeds arrache le nul après avoir changé de système",
+   "paragraphs": [
+    "Kevin Schade a ouvert le score pour Brentford à la 41e. Leeds a égalisé à la 79e par Dominic Calvert-Lewin, servi par Lukas Nmecha, entré à la 68e.",
+    "Brentford a dominé la première période (11 tirs contre 2, 0,55 xG contre 0,04) et a fini avec 22 tirs et 40 touches dans la surface adverse. Leeds a dû remplacer Joe Rodon sur blessure dès la 34e.",
+    "Avec et sans ballon : Leeds est passé du 3-4-2-1 au 4-2-3-1 à la pause, puis a créé 1,32 xG après ses changements de la 67e (Nmecha, James), contre 0,04 en première période."
+   ],
+   "keys": [
+    "Dominic Calvert-Lewin : le but et 7 duels aériens gagnés.",
+    "Keane Lewis-Potter : une passe décisive, 19 passes qui cassent les lignes.",
+    "Brentford : 22 tirs, 2 grosses occasions manquées."
+   ]
+  },
+  "5795433": {
+   "headline": "Les changements de Sunderland font la différence",
+   "paragraphs": [
+    "Le match s'est décidé sur les bancs : Wilson Isidor, entré à la 64e, a marqué à la 75e sur un service de Habib Diarra, entré à la 65e.",
+    "Sunderland a créé 1,92 xG en seconde période contre 0,10 avant la pause, et Fulham n'a cadré aucun tir. Bernd Leno a fait une erreur menant à un but.",
+    "Avec et sans ballon : après ses changements, Sunderland est passé en 4-4-2 et a créé 1,82 xG avec seulement 21 % des passes. Après l'ouverture du score, il a reculé à 21 m de son but."
+   ],
+   "keys": [
+    "Wilson Isidor : le but, 11 minutes après son entrée.",
+    "Fulham : aucun tir cadré.",
+    "Granit Xhaka : 4 occasions créées, 19 passes qui cassent les lignes."
+   ]
+  },
+  "5795432": {
+   "headline": "Triplé de Bruno Fernandes, United se lâche en seconde période",
+   "paragraphs": [
+    "Leif Davis a ouvert le score pour Ipswich (29e). Bruno Fernandes a égalisé en contre (40e), puis United a pris le large après la pause : contre-son-camp de Jacob Greaves (56e), penalty puis but de Fernandes (61e, 68e), Bryan Mbeumo en contre (82e). Chuba Akpom a réduit l'écart à la 90+1.",
+    "United a créé 4,01 xG en seconde période et 4,77 au total, avec 33 tirs et 9 grosses occasions. Kjell Scherpen a tout de même fait 6 arrêts (+0,70 but évité).",
+    "Avec et sans ballon : United, avec 4 changements dans son onze après la défaite de la journée 1, a dominé jusqu'à ses changements (4,28 xG contre 1,06 jusqu'à la 72e). Ipswich est passé en 5-3-2 en fin de match."
+   ],
+   "keys": [
+    "Bruno Fernandes : 3 buts, une passe décisive, note 9,8.",
+    "United : 33 tirs, 4,77 xG.",
+    "Youri Tielemans : 24 passes qui cassent les lignes, 4 occasions créées."
+   ]
+  },
+  "5795426": {
+   "headline": "Arsenal gagne à Villa sans forcer",
+   "paragraphs": [
+    "Bukayo Saka a marqué le seul but du match à la 59e, servi par Riccardo Calafiori.",
+    "Peu d'occasions (1,04 xG contre 0,33, 7 tirs de chaque côté), mais Villa n'a cadré aucun tir et David Raya n'a pas eu un arrêt à faire.",
+    "Avec et sans ballon : Villa a défendu bas (actions défensives à 31 m de son but avant ses changements) et n'a eu que 36 % des passes jusqu'à la 70e. Arsenal, avec le même onze qu'à la journée 1, a récupéré 21 ballons dans le camp adverse."
+   ],
+   "keys": [
+    "Bukayo Saka : le but, note 8,4.",
+    "Villa : aucun tir cadré pour la deuxième journée de suite.",
+    "Zion Suzuki, titularisé dans le but de Villa : −0,20 but évité."
+   ]
+  }
+ }
+}
