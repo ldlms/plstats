@@ -7,9 +7,13 @@
 # git pull puisse le modifier.
 main() {
   set -euo pipefail
+  # cron n'a qu'un PATH minimal : on ajoute les emplacements habituels de rclone
+  export PATH="/usr/local/bin:/usr/bin:/bin:/snap/bin:$PATH"
   cd "$(dirname "$(readlink -f "$0")")"
+  command -v rclone >/dev/null || { echo "[sync] $(date -u +%FT%TZ) rclone introuvable"; exit 1; }
   git pull -q --rebase
   rclone copy reports "gdrive:Premier League – Rapports" --include "*.pdf" --checksum
+  echo "[sync] $(date -u +%FT%TZ) ok"
 }
 main "$@"
 exit
