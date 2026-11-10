@@ -70,6 +70,7 @@ def creation(ws, tid, players):
             })
     # tirs dans les 10 s qui suivent une récupération, sans passe adverse entre les deux
     fast = []
+    used = set()  # un tir ne compte qu'une fois, même si plusieurs récupérations le précèdent
     for i, e in enumerate(ev):
         if e["teamId"] != tid or not (e["type"] in RECOVERY or (e["type"] == "Tackle" and e["outcome"] == "Successful")):
             continue
@@ -80,6 +81,9 @@ def creation(ws, tid, players):
             if f["teamId"] != tid and f["type"] == "Pass" and f["outcome"] == "Successful":
                 break
             if f["teamId"] == tid and f["type"] in SHOT_TYPES:
+                if f.get("id") in used:
+                    break
+                used.add(f.get("id"))
                 fast.append({"min": f.get("min"), "goal": f["type"] == "Goal",
                              "player": (players.get(f["playerId"]) or {}).get("name"),
                              "recovered_at_m": round(e["x"] * L / 100, 1)})

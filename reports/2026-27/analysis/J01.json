@@ -1,0 +1,138 @@
+{
+ "intro": [
+  "30 buts pour la première journée, dont un seul penalty transformé. Brighton a frappé le plus fort (4-0 contre Aston Villa, réduit à dix dès la 40e), et Brentford a créé plus d'occasions que n'importe qui (3,87 xG) en battant Tottenham 3-0.",
+  "Au regard des occasions, trois résultats surprennent. Hull bat Manchester United 2-0 avec 28 % du ballon, grâce à deux buts sur coups de pied arrêtés. Everton bat Crystal Palace 2-0 alors que Palace a créé davantage et a raté ses 4 grosses occasions. Et Liverpool, avec 2,98 xG à Newcastle, n'arrache le nul qu'à la 90+9."
+ ],
+ "matches": {
+  "5795363": {
+   "headline": "Arsenal déroule face à un Coventry qui n'a presque pas tiré",
+   "paragraphs": [
+    "Kai Havertz a ouvert le score à la 15e, Bukayo Saka a doublé la mise en contre-attaque à la 23e (0,52 xG) et Martin Ødegaard a fixé le score à la 49e. Arsenal a tiré 20 fois, Coventry 4.",
+    "Coventry n'a créé que 0,20 xG et n'a touché le ballon que 3 fois dans la surface adverse, contre 36 pour Arsenal. David Raya n'a eu qu'un arrêt à faire.",
+    "Avec et sans ballon : Coventry a défendu bas en 4-1-4-1 (actions défensives à 31 m de son but, PPDA 29,4) et n'a eu que 32 % des passes jusqu'à ses changements de la fin de match."
+   ],
+   "keys": [
+    "Martin Ødegaard : un but, 3 occasions créées, 10 passes qui cassent les lignes, note 8,6.",
+    "Coventry : 4 tirs pour 0,20 xG.",
+    "Milan van Ewijk, moins bien noté du match (4,3)."
+   ]
+  },
+  "5795364": {
+   "headline": "Hull bat United avec 28 % du ballon, sur coups de pied arrêtés",
+   "paragraphs": [
+    "Semi Ajayi sur corner (17e) puis Nobel Mendy sur coup de pied arrêté (38e) ont donné l'avantage à Hull. United a ensuite eu le ballon presque tout le temps (72 % de possession, 21 tirs) sans marquer.",
+    "Au total, United a créé plus (1,83 xG contre 1,01), mais 0,94 des 1,01 xG de Hull sont venus de coups de pied arrêtés. Le gardien Konstantinos Tzolakis a fait 5 arrêts et finit meilleur joueur du match (8,4). Hull a aussi dû faire trois changements sur blessure, dont ses deux buteurs.",
+    "Avec et sans ballon : Hull a défendu très bas en 5-4-1 (actions défensives à 26 m de son but, PPDA 25,0), et plus bas encore après ses changements (21 m). United a eu jusqu'à 78 % des passes en fin de match, mais n'a créé que 0,27 xG dans cette dernière phase."
+   ],
+   "keys": [
+    "Konstantinos Tzolakis : 5 arrêts, +0,60 but évité.",
+    "United : 41 touches dans la surface adverse, aucun but.",
+    "Bruno Fernandes : 21 passes qui cassent les lignes."
+   ]
+  },
+  "5795365": {
+   "headline": "Palace rate ses 4 grosses occasions, Everton marque sur ses rares chances",
+   "paragraphs": [
+    "Crystal Palace a dominé la première période en occasions (1,57 xG contre 0,33) mais a manqué ses 4 grosses occasions. Kiernan Dewsbury-Hall a ouvert le score à la 42e sur un tir à 0,04 xG, puis Thierno Barry a doublé la mise sur coup de pied arrêté (53e).",
+    "Everton a pourtant plus tiré (16 contre 11) et touché plus de ballons dans la surface adverse (35 contre 14), mais avec des tirs de moins bonne qualité (1,12 xG au total contre 1,96). Jordan Pickford a fait 4 arrêts (+0,94 but évité).",
+    "Avec et sans ballon : Palace a pressé très fort (PPDA 8,2, 24 ballons récupérés dans le camp adverse). Après ses changements, il a eu 71 % des passes à partir de la 62e, mais n'a créé que 0,39 xG."
+   ],
+   "keys": [
+    "Kiernan Dewsbury-Hall : un but, 12 passes qui cassent les lignes, note 8,4.",
+    "Palace : 4 grosses occasions, toutes manquées.",
+    "Jordan Pickford : 4 arrêts, +0,94 but évité."
+   ]
+  },
+  "5795366": {
+   "headline": "Ipswich s'impose en contre malgré 38 % du ballon",
+   "paragraphs": [
+    "Emersonn a ouvert le score en contre-attaque à la 24e (0,77 xG), Nilson Angulo a égalisé sur coup franc à la 39e, et Jack Clarke, entré en jeu à la 71e, a donné la victoire à Ipswich à la 90e.",
+    "Sunderland a eu le ballon (62 %) mais Ipswich a créé bien plus (1,80 xG contre 0,66). Ses deux buts sont venus dans les 10 secondes qui ont suivi une récupération.",
+    "Avec et sans ballon : Sunderland a pressé haut (PPDA 8,9). Ipswich a reculé après avoir pris l'avantage : ses actions défensives étaient à 33 m de son but quand il menait, contre 37 m à égalité."
+   ],
+   "keys": [
+    "Emersonn : un but, meilleur joueur du match (8,2).",
+    "Jack Clarke : le but de la victoire, 19 minutes après son entrée.",
+    "Granit Xhaka : 15 passes qui cassent les lignes, 8 ballons récupérés."
+   ]
+  },
+  "5795367": {
+   "headline": "Un coup franc d'Anton Stach à la 88e décide d'un match fermé",
+   "paragraphs": [
+    "Peu d'occasions de part et d'autre (0,66 xG contre 0,47), aucune grosse occasion, et un seul but : le coup franc d'Anton Stach à la 88e (0,04 xG).",
+    "L'essentiel du danger est venu des coups de pied arrêtés (0,47 xG pour Forest, 0,33 pour Leeds). James Trafford a fait les 3 arrêts nécessaires pour Leeds.",
+    "Avec et sans ballon : Leeds, en 3-4-2-1, a pressé fort (PPDA 8,6) et a récupéré 26 ballons dans le camp adverse, contre 7 pour Forest. Forest a eu plus le ballon (56 %) sans trouver de solution."
+   ],
+   "keys": [
+    "Anton Stach : le but et 7 tacles/interceptions, note 8,4.",
+    "Jaka Bijol : 7 duels aériens gagnés.",
+    "Aucune grosse occasion dans ce match."
+   ]
+  },
+  "5795368": {
+   "headline": "Brentford écrase Tottenham : 26 tirs, 3,87 xG",
+   "paragraphs": [
+    "Keane Lewis-Potter (12e), Vitaly Janelt (33e) et Michael Kayode sur corner (49e) ont marqué pour Brentford, qui a tiré 26 fois contre 9. Igor Thiago a même touché le poteau sur penalty à la 55e.",
+    "C'est le plus gros total de xG de la journée (3,87). Brentford a eu 6 grosses occasions et en a manqué 3 ; Antonín Kinsky a fait 5 arrêts.",
+    "Avec et sans ballon : Tottenham a eu le ballon (60 %) et a fait deux changements à la pause puis deux autres en seconde période, sans effet : il a concédé 1,34 xG entre la 45e et la 67e, puis 0,85 ensuite. Brentford a récupéré 27 ballons dans le camp adverse."
+   ],
+   "keys": [
+    "Vitaly Janelt : un but et 8 tacles/interceptions, note 8,4.",
+    "Brentford : 6 grosses occasions.",
+    "Lucas Bergvall, remplacé à la pause, moins bien noté du match (5,0)."
+   ]
+  },
+  "5795369": {
+   "headline": "Brighton a plié le match en une demi-heure",
+   "paragraphs": [
+    "Un but contre son camp de Victor Nilsson Lindelöf (8e), puis Maxim De Cuyper (18e) et un doublé de Jack Hinshelwood (30e, 31e) : Brighton menait 4-0 après 31 minutes. João Gomes a été exclu à la 40e.",
+    "Brighton a créé 3,77 xG contre 0,29, et Villa n'a cadré aucun tir. Marco Bizot a évité un score plus lourd (3 arrêts, +0,59 but évité).",
+    "Avec et sans ballon : le pressing de Brighton est le plus intense de la journée (PPDA 4,9, actions défensives à 50 m de son but en moyenne). À dix, Villa n'a eu que 15 % des passes en seconde période et a reculé à 24 m."
+   ],
+   "keys": [
+    "Jack Hinshelwood : 2 buts en une minute, note 9,0.",
+    "Villa : aucun tir cadré.",
+    "Victor Nilsson Lindelöf, buteur contre son camp, moins bien noté du match (3,6)."
+   ]
+  },
+  "5795370": {
+   "headline": "City renverse Bournemouth dans les dernières minutes",
+   "paragraphs": [
+    "Marcus Tavernier a ouvert le score pour Bournemouth à la 26e. City a égalisé à la 84e sur corner par Marc Guéhi, puis Josko Gvardiol a donné la victoire à la 90+1, les deux fois servis par Rayan Cherki, entré à la 63e.",
+    "City a dominé (66 % de possession, 2,25 xG contre 0,65) mais a manqué 3 de ses 4 grosses occasions, et Djordje Petrovic a fait 4 arrêts (+0,68 but évité). Après la pause, Bournemouth n'a tiré qu'une fois.",
+    "Avec et sans ballon : les changements de City autour de l'heure de jeu (Cherki, Nunes, Kovacic) ont fait la différence : 0,99 xG créé contre 0,10 concédé dans cette phase. Bournemouth a défendu bas (actions défensives à 33 m de son but, PPDA 19,9)."
+   ],
+   "keys": [
+    "Rayan Cherki : 2 passes décisives après son entrée à la 63e.",
+    "Marc Guéhi, buteur, meilleur joueur du match (8,5).",
+    "City : 3 grosses occasions manquées sur 4."
+   ]
+  },
+  "5795371": {
+   "headline": "Liverpool arrache le nul à la 90+9 sur penalty",
+   "paragraphs": [
+    "Anthony Elanga a ouvert le score en contre dès la 5e. Cody Gakpo a égalisé à la 55e, Joseph Willock, entré à la 56e, a redonné l'avantage à Newcastle une minute plus tard, et Dominik Szoboszlai a égalisé sur penalty à la 90+9.",
+    "Liverpool a créé presque deux fois plus (2,98 xG contre 1,58, 27 tirs contre 13), dont 2,45 xG en seconde période. Lukás Hornícek a fait 5 arrêts (+0,97 but évité).",
+    "Avec et sans ballon : Liverpool a pressé très haut (PPDA 6,7, 25 ballons récupérés dans le camp adverse). Newcastle a défendu à 33 m de son but en moyenne, et plus bas encore après ses derniers changements (27 m)."
+   ],
+   "keys": [
+    "Cody Gakpo : un but, 3 occasions créées, note 8,4.",
+    "Lukás Hornícek : 5 arrêts, +0,97 but évité.",
+    "Yoane Wissa : 1,00 xG sans marquer, mais une passe décisive."
+   ]
+  },
+  "5795372": {
+   "headline": "Chelsea s'impose dans un match à cinq buts",
+   "paragraphs": [
+    "João Pedro a marqué dès la 1re minute en contre, Joshua King a égalisé (23e), puis Morgan Rogers (41e) et Cole Palmer (49e) ont donné deux buts d'avance à Chelsea. Gonzalo García a réduit l'écart à la 54e.",
+    "Chelsea a fait la différence en première période (1,99 xG contre 0,44) ; Fulham, avec 62 % du ballon, a mieux fini (0,89 xG contre 0,25 après la pause). Les deux gardiens ont encaissé plus que prévu : Bernd Leno −0,98 but évité, Robert Sánchez −0,83, avec une erreur menant à un but.",
+    "Avec et sans ballon : Chelsea, en 3-4-2-1, a laissé le ballon à Fulham (PPDA 23,0). Après ses cinq changements, il n'a plus créé que 0,03 xG en fin de match."
+   ],
+   "keys": [
+    "Cole Palmer : un but, une passe décisive, note 9,1.",
+    "Morgan Rogers : un but, 5 occasions créées.",
+    "Robert Sánchez, moins bien noté du match (5,6), avec une erreur menant à un but."
+   ]
+  }
+ }
+}
