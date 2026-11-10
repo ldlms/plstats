@@ -145,6 +145,20 @@ figcaption { font-size: 14px; color: var(--muted); }
 .top { font-size: 14px; color: var(--muted); text-align: right; }
 footer { font-size: 13px; color: var(--muted); }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.subs { display: grid; gap: 4px; }
+.subs-t { text-align: center; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.subs .scorers { font-size: 13.5px; }
+.subs .in { color: var(--text); display: block; } .subs .out { color: var(--muted); display: block; }
+.subs li + li { margin-top: 4px; }
+.subs-l { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.subs-l b { color: var(--text); }
+.gks { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+       padding: 12px 14px; }
+.gks h4 { margin: 0; font-family: var(--font-display); font-size: 18px; text-transform: uppercase; }
+.gks ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 15px; }
+.gk-stats { color: var(--muted); font-size: 14px; padding-left: 16px; }
+.gk-stats b { color: var(--text); font-variant-numeric: tabular-nums; }
+.gks p { font-size: 13px; }
 .habits { display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--line);
           border-radius: 10px; padding: 12px 14px; }
 .habits h4 { margin: 0; font-family: var(--font-display); font-size: 18px; text-transform: uppercase; }
@@ -174,6 +188,9 @@ details.more > .figs { margin-top: 12px; }
 .ivz-svg .lk-away { stroke: #fbdccb; stroke-linecap: round; }
 .ivz-svg .nd-home { fill: var(--home); stroke: #141917; stroke-width: 0.5; }
 .ivz-svg .nd-away { fill: var(--away); stroke: #141917; stroke-width: 0.5; }
+.ivz-svg .nd-home.sub, .ivz-svg .nd-away.sub { fill: #18201c; stroke-width: 0.6; }
+.ivz-svg .nd-home.sub { stroke: var(--home); } .ivz-svg .nd-away.sub { stroke: var(--away); }
+.ivz-svg .nt.sub.t-home { fill: var(--home); } .ivz-svg .nt.sub.t-away { fill: var(--away); }
 .ivz-svg .dp-home { fill: var(--home); opacity: 0.4; }
 .ivz-svg .dp-away { fill: var(--away); opacity: 0.4; }
 .ivz-svg .nt { fill: #fff; font-size: 2.7px; font-weight: 700; text-anchor: middle; dominant-baseline: central;
@@ -281,7 +298,12 @@ def squad_block(m, side):
             tags = '<span class="muted">Pas de point fort qui ressort nettement cette saison.</span>'
         hl = p.get("match_highlights") or []
         rate = f'<span class="prate">{fmt_num(p["rating"], 1)}</span>' if p.get("rating") else ""
-        sub = "" if p["starter"] else ' <span class="muted">(entré)</span>'
+        if not p["starter"]:
+            sub = f' <span class="muted">(entré {esc(p.get("sub_in") or "")})</span>'
+        elif p.get("sub_out"):
+            sub = f' <span class="muted">(sorti {esc(p["sub_out"])})</span>'
+        else:
+            sub = ""
         items.append(
             f'<li><div class="pname"><span class="pnum">{esc(p["number"])}</span><span>{esc(p["name"])}{sub}</span>'
             f'{rate}<span class="muted">{int(p["minutes"])} min</span></div>'
@@ -361,11 +383,13 @@ def svg_possession(m, side):
                    f'<line x1="{a["x"]}" y1="{PH - a["y"]:.1f}" x2="{b["x"]}" y2="{PH - b["y"]:.1f}" class="ht" stroke-width="3"/>'
                    f'<line x1="{a["x"]}" y1="{PH - a["y"]:.1f}" x2="{b["x"]}" y2="{PH - b["y"]:.1f}" class="lk-{side}" '
                    f'stroke-width="{w:.2f}" stroke-opacity="{op:.2f}"/></g>')
-    for n in nodes.values():
+    for n in sorted(nodes.values(), key=lambda n: not n.get("sub")):
         r = 2.0 + 1.6 * n["n"] / tmax
-        out.append(f'<g class="hit" {tipattr(f"{n["name"]} · {n["n"]} ballons joués (passes données ou reçues)")}>'
-                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="{r:.2f}" class="nd-{side}"/>'
-                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt">{esc(n["number"])}</text></g>')
+        sub = " sub" if n.get("sub") else ""
+        lab = " (remplaçant)" if n.get("sub") else ""
+        out.append(f'<g class="hit" {tipattr(f"{n["name"]}{lab} · {n["n"]} ballons joués (passes données ou reçues)")}>'
+                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="{r:.2f}" class="nd-{side}{sub}"/>'
+                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt{sub} t-{side}">{esc(n["number"])}</text></g>')
     return svg_wrap("".join(out), f"{m[side]} avec le ballon")
 
 
@@ -379,10 +403,12 @@ def svg_defence(m, side):
         out.append(f'<g {tipattr(f"Hauteur moyenne des actions défensives : {fmt_num(h, 0)} m de son but")}>'
                    f'<line x1="{h:.1f}" y1="0" x2="{h:.1f}" y2="68" class="avg"/>'
                    f'<rect x="{h - 1.2:.1f}" y="0" width="2.4" height="68" class="ht"/></g>')
-    for n in stc.get("defensive_shape", []):
-        out.append(f'<g class="hit" {tipattr(f"{n["name"]} · {n["n"]} actions défensives (position moyenne)")}>'
-                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="2.4" class="nd-{side}"/>'
-                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt">{esc(n["number"])}</text></g>')
+    for n in sorted(stc.get("defensive_shape", []), key=lambda n: not n.get("sub")):
+        sub = " sub" if n.get("sub") else ""
+        lab = " (remplaçant)" if n.get("sub") else ""
+        out.append(f'<g class="hit" {tipattr(f"{n["name"]}{lab} · {n["n"]} actions défensives (position moyenne)")}>'
+                   f'<circle cx="{n["x"]}" cy="{PH - n["y"]:.1f}" r="2.4" class="nd-{side}{sub}"/>'
+                   f'<text x="{n["x"]}" y="{PH - n["y"]:.1f}" class="nt{sub} t-{side}">{esc(n["number"])}</text></g>')
     return svg_wrap("".join(out), f"{m[side]} sans le ballon")
 
 
@@ -418,6 +444,36 @@ TIP_JS = """
 
 
 # ------------------------------------------------------------------ blocs HTML
+def goalkeepers_block(m):
+    gks = m.get("goalkeepers") or {}
+    items = []
+    for side in ("home", "away"):
+        for g in gks.get(side, []):
+            bits = [f'<b>{int(g["saves"])}</b> arrêt{"s" if g["saves"] > 1 else ""}',
+                    f'<b>{int(g["goals_conceded"])}</b> encaissé{"s" if g["goals_conceded"] > 1 else ""}']
+            if g.get("xgot_faced") is not None:
+                bits.append(f'<b>{fmt_num(g["xgot_faced"], 2)}</b> xGOT subis')
+            if g.get("goals_prevented") is not None:
+                gp = g["goals_prevented"]
+                bits.append(f'<b>{"+" if gp > 0 else "−" if gp < 0 else ""}{fmt_num(abs(gp), 2)}</b> but{"s" if abs(gp) >= 2 else ""} évité{"s" if abs(gp) >= 2 else ""}')
+            if g.get("errors_led_to_goal"):
+                bits.append(f'<b>{int(g["errors_led_to_goal"])}</b> erreur menant à un but')
+            if g.get("high_claims"):
+                bits.append(f'<b>{int(g["high_claims"])}</b> sortie{"s" if g["high_claims"] > 1 else ""} aérienne{"s" if g["high_claims"] > 1 else ""}')
+            p_ok, p_all = g.get("passes") or [None, None]
+            if p_all:
+                bits.append(f'<b>{p_ok}/{p_all}</b> passes')
+            mins = "" if g["minutes"] >= 89 else f' <span class="muted">({g["minutes"]} min)</span>'
+            rate = f' <span class="prate">{fmt_num(g["rating"], 1)}</span>' if g.get("rating") else ""
+            items.append(f'<li><div><span class="dot {side}"></span> <b>{esc(g["name"])}</b>{mins}{rate}</div>'
+                         f'<div class="gk-stats">{" · ".join(bits)}</div></li>')
+    if not items:
+        return ""
+    return ('<div class="gks" aria-label="Gardiens"><h4>Gardiens</h4><ul>' + "".join(items) + "</ul>"
+            '<p class="muted">xGOT subis : danger des tirs cadrés affrontés. Buts évités = xGOT subis moins buts '
+            'encaissés : positif, le gardien a sauvé plus que prévu.</p></div>')
+
+
 def habits_block(m):
     ctx = m.get("context")
     if not ctx:
@@ -444,7 +500,7 @@ def habits_block(m):
 
 
 FIG_ALT = {
-    "momentum": "Momentum du match", "form": "Forme sur 5 matchs", "positions": "Positions moyennes",
+    "momentum": "Momentum du match", "form": "Forme sur 5 matchs", "goalkeepers": "Tirs cadrés subis par les gardiens", "positions": "Positions moyennes",
     "heatmaps": "Heatmaps des deux équipes", "shape_home": "Structure avec et sans ballon, domicile",
     "shape_away": "Structure avec et sans ballon, extérieur", "creation_home": "Création d'occasions, domicile",
     "creation_away": "Création d'occasions, extérieur", "player_home": "Fiche du joueur clé à domicile",
@@ -452,6 +508,7 @@ FIG_ALT = {
 }
 FIG_CAP = {
     "momentum": "Qui pousse, minute par minute (modèle FotMob). Les triangles marquent les buts.",
+    "goalkeepers": "La cage vue de face, avec chaque tir cadré subi par le gardien : plein = but, creux = arrêt, taille = danger du tir (xGOT).",
     "form": "Les 5 derniers matchs de chaque équipe, celui-ci compris : xG créés au-dessus, concédés en dessous. D = domicile, E = extérieur.",
     "positions": "Position moyenne des titulaires, calculée sur toutes leurs actions du match.",
     "heatmaps": "Zones où chaque équipe a eu ses actions (gardien exclu), les deux attaquant vers la droite.",
@@ -486,9 +543,16 @@ def dual_fig(m, name, outdir, svg_html, title, cap, extra=""):
 def numbers_legend(m, side):
     ps = [p for p in m["players"][side] if p["starter"]]
     ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
-    items = "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
+    items = "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}"
+                    + (f' <span class="muted">(sorti {esc(p["sub_out"])})</span>' if p.get("sub_out") else "")
+                    + "</li>" for p in ps)
+    subs = [p for p in m["players"][side] if not p["starter"] and p.get("minutes")]
+    subs_html = ""
+    if subs:
+        subs_html = ('<div class="subs-l">Entrés en jeu (cercles creux) : ' + ", ".join(
+            f'<b>{esc(p["number"])}</b> {esc(p["name"])} ({esc(p.get("sub_in") or "")})' for p in subs) + "</div>")
     return (f'<div class="legend one"><div><span class="dot {side}"></span> {esc(m[side])}'
-            f'<ol class="cols">{items}</ol></div></div>')
+            f'<ol class="cols">{items}</ol>{subs_html}</div></div>')
 
 
 def match_section(m, txt, outdir):
@@ -511,6 +575,15 @@ def match_section(m, txt, outdir):
     for r in m.get("red_cards", []):
         team = m["home"] if r["side"] == "home" else m["away"]
         parts.append(f'<div class="red">Carton rouge : {esc(r["player"])} ({esc(team)}), {esc(r["minute"])}</div>')
+    if m.get("substitutions"):
+        def sub_li(x):
+            inj = ' <span class="muted">(blessure)</span>' if x["injury"] else ""
+            return (f'<li><span class="in"><span class="num">{esc(x["minute"])}</span> ▲ {esc(x["in"])}</span>'
+                    f'<span class="out">▼ {esc(x["out"])}{inj}</span></li>')
+        sh = "".join(sub_li(x) for x in m["substitutions"] if x["side"] == "home")
+        sa = "".join(sub_li(x) for x in m["substitutions"] if x["side"] == "away")
+        parts.append(f'<div class="subs" aria-label="Remplacements"><div class="subs-t">Remplacements</div>'
+                     f'<div class="scorers"><ul class="home">{sh}</ul><ul class="away">{sa}</ul></div></div>')
 
     if txt:
         story = [f'<h3>{esc(txt.get("headline", ""))}</h3>']
@@ -548,6 +621,7 @@ def match_section(m, txt, outdir):
         rows.append(bar_row("Part des actions dans le dernier tiers", *(m.get("final_third_share_pct") or [None, None]),
                             suffix=" %"))
     parts.append('<div class="bars" aria-label="Statistiques du match">' + "".join(rows) + "</div>")
+    parts.append(goalkeepers_block(m))
 
     # Toujours visible : la carte des tirs (interactive)
     parts.append('<div class="figs">' + dual_fig(
@@ -574,11 +648,10 @@ def match_section(m, txt, outdir):
             ps = [p for p in m["players"][side] if p["starter"]]
             ps.sort(key=lambda p: int(p["number"]) if str(p["number"]).isdigit() else 99)
             return "".join(f"<li><b>{esc(p['number'])}</b>{esc(p['name'])}</li>" for p in ps)
-        extra = (f'<div class="legend"><div><span class="dot home"></span> {esc(m["home"])}'
-                 f'<ol>{lst("home")}</ol></div><div><span class="dot away"></span> {esc(m["away"])}'
-                 f'<ol>{lst("away")}</ol></div></div>')
+        extra = numbers_legend(m, "home") + numbers_legend(m, "away")
         more.append(static_fig(m, "positions", outdir, extra=extra))
-    more += [static_fig(m, "heatmaps", outdir), static_fig(m, "player_home", outdir), static_fig(m, "player_away", outdir)]
+    more += [static_fig(m, "goalkeepers", outdir), static_fig(m, "heatmaps", outdir),
+             static_fig(m, "player_home", outdir), static_fig(m, "player_away", outdir)]
     more = [x for x in more if x]
     parts.append(f'<details class="more"><summary>Tous les graphes du match <span class="muted">({len(more)})</span></summary>'
                  f'<div class="figs">{"".join(more)}</div></details>')
@@ -696,6 +769,7 @@ def build_page(S, A, outdir, ms, rows, intro, span, title):
     <div><dt>Actions</dt> <dd>passes, duels, tirs, récupérations… chaque point de heatmap en est une.</dd></div>
     <div><dt>PPDA</dt> <dd>nombre de passes que l'adversaire peut faire dans sa propre moitié (ses 60 % de terrain) avant une action défensive : autour de 8, pressing très intense ; au-delà de 18, bloc bas qui attend.</dd></div>
     <div><dt>Avec / sans le ballon</dt> <dd>calculé à partir de chaque passe et chaque action défensive du match (données Opta via WhoScored).</dd></div>
+    <div><dt>Cercles creux</dt> <dd>joueurs entrés en jeu, dans les graphes de positions et avec/sans ballon.</dd></div>
     <div><dt>Habitudes</dt> <dd>écarts les plus nets entre ce match et la moyenne des matchs précédents de l'équipe (données arrêtées à cette journée).</dd></div>
     <div><dt>Graphes interactifs</dt> <dd>touchez un tir, un joueur ou un trait pour voir le détail. « Tous les graphes du match » déplie le reste.</dd></div>
     <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>

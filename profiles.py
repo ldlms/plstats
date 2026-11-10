@@ -57,11 +57,12 @@ METRICS = {
     "saves": ("Arrêts", per90("saves"), "/90", True),
     "prevented": ("Buts évités", per90("goals_prevented"), "/90", True),
     "claims": ("Sorties aériennes", per90("keeper_high_claim"), "/90", True),
+    "insidebox": ("Arrêts dans la surface", per90("saves_inside_box"), "/90", True),
     "sweeper": ("Sorties hors de la surface", per90("keeper_sweeper"), "/90", True),
 }
 
 BY_GROUP = {
-    0: ["saves", "prevented", "claims", "sweeper", "passpct", "longpct"],
+    0: ["saves", "prevented", "insidebox", "claims", "sweeper", "passpct", "longpct", "linebreak"],
     1: ["tklint", "recov", "aerial", "groundpct", "clear", "notpast", "linebreak", "final3", "passpct", "distance"],
     2: ["linebreak", "final3", "chances", "xa", "passpct", "dribbles", "recov", "tklint", "groundpct", "distance"],
     3: ["npxg", "shots", "box", "chances", "xa", "dribbles", "final3", "groundpct", "recov", "sprints"],
@@ -195,6 +196,18 @@ def match_highlights(player):
         return (s.get(k) or (0, None))[0] or 0
 
     out = []
+    if player.get("isGoalkeeper"):
+        out.append(f"{int(v('saves'))} arrêt" + ("s" if v("saves") > 1 else ""))
+        if s.get("expected_goals_on_target_faced"):
+            out.append(f"{v('expected_goals_on_target_faced'):.2f} xGOT subis".replace(".", ","))
+        if s.get("goals_prevented"):
+            gp = v("goals_prevented")
+            out.append(f"{gp:+.2f} but{'s' if abs(gp) >= 2 else ''} évité{'s' if abs(gp) >= 2 else ''}".replace(".", ",").replace("-", "−"))
+        if v("errors_led_to_goal"):
+            out.append(f"{int(v('errors_led_to_goal'))} erreur menant à un but")
+        if v("keeper_high_claim") >= 2:
+            out.append(f"{int(v('keeper_high_claim'))} sorties aériennes")
+        return out[:4]
     if v("goals"):
         out.append(f"{int(v('goals'))} but" + ("s" if v("goals") > 1 else ""))
     if v("assists"):

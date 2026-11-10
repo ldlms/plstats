@@ -22,7 +22,7 @@ from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 from mplsoccer import Pitch  # noqa: E402
 from scipy.ndimage import gaussian_filter  # noqa: E402
 
-from profiles import Season, match_highlights  # noqa: E402
+from profiles import Season, flatten, match_highlights  # noqa: E402
 import manifest  # noqa: E402
 import ws_analysis  # noqa: E402
 from season_context import SeasonContext  # noqa: E402
@@ -348,15 +348,17 @@ def fig_positions(m, path):
     pitch = new_pitch(pad_top=8, pad_bottom=1.5)
     fig, ax = pitch.draw(figsize=(FW, FW * 0.74))
     for side, color in (("home", HOME), ("away", AWAY)):
-        for p in m["players"][side]:
-            if not p["starter"] or p["avg_x"] is None:
+        for p in sorted(m["players"][side], key=lambda p: p["starter"]):
+            if p["avg_x"] is None or (not p["starter"] and (p.get("minutes") or 0) < 15):
                 continue
             x, y = p["avg_x"], p["avg_y"]
             if side == "away":
                 x, y = L - x, W - y
-            pitch.scatter(x, y, s=330, ax=ax, facecolor=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+            sub = not p["starter"]
+            pitch.scatter(x, y, s=330, ax=ax, facecolor=PITCH if sub else color, edgecolor=color if sub else SURFACE,
+                          linewidth=2, zorder=4)
             ax.text(x, y, str(p["number"]), ha="center", va="center", fontsize=10.5,
-                    fontweight="bold", color="white", zorder=5)
+                    fontweight="bold", color=color if sub else "white", zorder=5)
     ax.text(L - 1, W + 4.2, f"{short(m['home'])} ({m['formation'][0]}) →", ha="right",
             va="center", fontsize=11.5, color=HOME, fontweight="bold")
     ax.text(1, W + 4.2, f"← {short(m['away'])} ({m['formation'][1]})", ha="left",
@@ -481,11 +483,13 @@ def fig_team_shape(m, side, ta, path):
         ax.plot([a["x"], b["x"]], [a["y"], b["y"]], color=tint, lw=w, alpha=0.25 + 0.55 * e["n"] / nmax,
                 zorder=3, solid_capstyle="round")
     tmax = max((n["n"] for n in ta["nodes"]), default=1)
-    for n in ta["nodes"]:
+    for n in sorted(ta["nodes"], key=lambda n: not n.get("sub")):
         size = 150 + 330 * n["n"] / tmax
-        pitch.scatter(n["x"], n["y"], s=size, ax=ax, facecolor=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+        sub = n.get("sub")
+        pitch.scatter(n["x"], n["y"], s=size, ax=ax, facecolor=PITCH if sub else color,
+                      edgecolor=color if sub else SURFACE, linewidth=2, zorder=4)
         ax.text(n["x"], n["y"], str(n["number"]), ha="center", va="center", fontsize=10, fontweight="bold",
-                color="white", zorder=5)
+                color=color if sub else "white", zorder=5)
     if mt["possession_block_height_m"]:
         ax.plot([mt["possession_block_height_m"]] * 2, [0, W], color=TEXT, lw=1, ls=(0, (4, 4)), alpha=0.6, zorder=2)
     sub = f"bloc à {mt['possession_block_height_m']:.0f} m de son but · largeur {mt['possession_width_m']:.0f} m" \
@@ -497,10 +501,12 @@ def fig_team_shape(m, side, ta, path):
     if ta["def_points"]:
         xs, ys = zip(*ta["def_points"])
         pitch.scatter(xs, ys, s=22, ax=ax, facecolor=color, edgecolor="none", alpha=0.35, zorder=3)
-    for n in ta["def_nodes"]:
-        pitch.scatter(n["x"], n["y"], s=300, ax=ax, facecolor=color, edgecolor=SURFACE, linewidth=2, zorder=4)
+    for n in sorted(ta["def_nodes"], key=lambda n: not n.get("sub")):
+        sub = n.get("sub")
+        pitch.scatter(n["x"], n["y"], s=300, ax=ax, facecolor=PITCH if sub else color,
+                      edgecolor=color if sub else SURFACE, linewidth=2, zorder=4)
         ax.text(n["x"], n["y"], str(n["number"]), ha="center", va="center", fontsize=10, fontweight="bold",
-                color="white", zorder=5)
+                color=color if sub else "white", zorder=5)
     h = mt["defensive_actions_avg_height_m"]
     if h:
         ax.plot([h, h], [0, W], color=TEXT, lw=1, ls=(0, (4, 4)), alpha=0.6, zorder=2)
@@ -579,6 +585,46 @@ def fig_team_of_round(xi, rnd, path):
     save(fig, path)
 
 
+def fig_goalkeepers(m, path):
+    """La cage vue de face : tirs cadrés subis par chaque gardien (plein = but, creux = arrêt)."""
+    fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 0.95))
+    for ax, side in ((axes[0], "home"), (axes[1], "away")):
+        color = HOME if side == "home" else AWAY
+        opp = "away" if side == "home" else "home"
+        ax.set_facecolor(SURFACE)
+        ax.set_xlim(-1.4, 7.32 + 1.4)
+        ax.set_ylim(-0.25, 2.44 + 1.05)
+        ax.set_aspect("equal")
+        ax.axis("off")
+        ax.plot([0, 0, 7.32, 7.32], [0, 2.44, 2.44, 0], color=TEXT, lw=3, solid_capstyle="round", zorder=2)
+        ax.plot([-1.2, 8.52], [0, 0], color=LINE, lw=1.5, zorder=1)
+        for x in np.arange(0.61, 7.32, 0.61):
+            ax.plot([x, x], [0, 2.44], color=LINE, lw=0.5, zorder=1)
+        for y in np.arange(0.4, 2.44, 0.4):
+            ax.plot([0, 7.32], [y, y], color=LINE, lw=0.5, zorder=1)
+        on = [s_ for s_ in m["_shots"][opp] if s_.get("isOnTarget") and not s_.get("isBlocked")
+              and s_.get("goalCrossedY") is not None]
+        for s_ in sorted(on, key=lambda s_: s_["eventType"] == "Goal"):
+            gx = min(max(s_["goalCrossedY"] - 30.34, 0.1), 7.22)
+            gz = min(max(s_.get("goalCrossedZ") or 0.1, 0.12), 2.34)
+            xgot = s_.get("expectedGoalsOnTarget") or 0
+            goal = s_["eventType"] == "Goal"
+            ax.scatter(gx, gz, s=50 + 900 * xgot, facecolor=color if goal else "none",
+                       edgecolor=SURFACE if goal else color, linewidth=1.8, zorder=4 if goal else 3)
+        gks = m["goalkeepers"][side]
+        g = max(gks, key=lambda x: x["minutes"]) if gks else None
+        name = g["name"] if g else short(m[side])
+        ax.text(-1.4, 2.44 + 0.82, f"{name} ({short(m[side])})", fontsize=12, fontweight="bold", color=color, va="center")
+        if g:
+            gp = g["goals_prevented"]
+            gps = (f" · {gp:+.2f} buts évités".replace(".", ",").replace("-", "−")) if gp is not None else ""
+            xg = f" · {g['xgot_faced']:.2f} xGOT subis".replace(".", ",") if g["xgot_faced"] is not None else ""
+            ax.text(-1.4, 2.44 + 0.42, f"{int(g['saves'])} arrêts · {int(g['goals_conceded'])} encaissés{xg}{gps}",
+                    fontsize=10, color=MUTED, va="center")
+    fig.subplots_adjust(hspace=0.15)
+    save(fig, path)
+
+
 def fig_momentum(m, path):
     data = m["_momentum"]
     fig, ax = plt.subplots(figsize=(FW, FW * 0.46))
@@ -622,10 +668,21 @@ def build_match(f, outdir, season, ctx):
     teams = d["header"]["teams"]
     players = team_players(c, heat, home_id)
     pstats = c.get("playerStats") or {}
+    subs = []
+    for e in c.get("matchFacts", {}).get("events", {}).get("events", []):
+        if e.get("type") == "Substitution" and len(e.get("swap") or []) == 2:
+            pin, pout = e["swap"]
+            subs.append({"minute": minute_str(e), "sort": e.get("time", 0) + (e.get("overloadTime") or 0) / 100,
+                         "side": "home" if e.get("isHome") else "away", "in": pin.get("name"), "out": pout.get("name"),
+                         "in_id": str(pin.get("id")), "out_id": str(pout.get("id")),
+                         "injury": bool(e.get("injuredPlayerOut"))})
+    subs.sort(key=lambda x: x["sort"])
     for side in ("home", "away"):
         for p in players[side]:
             p["profile"] = season.profile(p["id"])
             p["match_highlights"] = match_highlights(pstats.get(str(p["id"]), {}))
+            p["sub_in"] = next((x["minute"] for x in subs if x["in_id"] == str(p["id"])), None)
+            p["sub_out"] = next((x["minute"] for x in subs if x["out_id"] == str(p["id"])), None)
     shots = c.get("shotmap", {}).get("shots", [])
     lineup = c.get("lineup", {})
 
@@ -635,6 +692,25 @@ def build_match(f, outdir, season, ctx):
 
     ws = ws_analysis.load(f.parent, g["matchId"])
     struct = {s_: ws_analysis.team_analysis(ws, s_) for s_ in ("home", "away")} if ws else None
+    def gk_line(side):
+        out = []
+        for p in players[side]:
+            if not p["gk"] or not p.get("minutes"):
+                continue
+            fs = flatten(pstats.get(str(p["id"]), {}))
+
+            def v(k):
+                return (fs.get(k) or (None, None))[0]
+            acc = fs.get("accurate_passes") or (None, None)
+            lb = fs.get("long_balls_accurate") or (None, None)
+            out.append({"name": p["name"], "minutes": p["minutes"], "rating": p.get("rating"),
+                        "saves": v("saves") or 0, "goals_conceded": v("goals_conceded") or 0,
+                        "xgot_faced": v("expected_goals_on_target_faced"), "goals_prevented": v("goals_prevented"),
+                        "errors_led_to_goal": v("errors_led_to_goal") or 0, "high_claims": v("keeper_high_claim") or 0,
+                        "sweeper": v("keeper_sweeper") or 0, "punches": v("punches") or 0,
+                        "passes": [acc[0], acc[1]], "long_balls": [lb[0], lb[1]]})
+        return out
+
     potm = c.get("matchFacts", {}).get("playerOfTheMatch") or {}
     m = {
         "id": str(g["matchId"]),
@@ -652,6 +728,8 @@ def build_match(f, outdir, season, ctx):
         "stats_first_half": stats_block(c, "FirstHalf"),
         "stats_second_half": stats_block(c, "SecondHalf"),
         "goals": sorted(goals_list(c, home_id), key=lambda x: x["sort"]),
+        "substitutions": [{k: v for k, v in x.items() if not k.endswith("_id")} for x in subs],
+        "goalkeepers": {s_: gk_line(s_) for s_ in ("home", "away")},
         "red_cards": cards_list(c),
         "attacking_zones": {s: c.get("attackingZones", {}).get(s, {}).get("total") for s in ("home", "away")},
         "momentum_phases": momentum_phases(c.get("momentum", {}).get("main", {}).get("data", [])),
@@ -664,8 +742,8 @@ def build_match(f, outdir, season, ctx):
         },
         "insights_en": [i.get("text") for i in c.get("matchFacts", {}).get("insights", [])],
         "structure": {s_: struct[s_]["metrics"] | {
-            "possession_shape": [{k: n[k] for k in ("name", "number", "x", "y", "n")} for n in struct[s_]["nodes"]],
-            "defensive_shape": [{k: n[k] for k in ("name", "number", "x", "y", "n")} for n in struct[s_]["def_nodes"]],
+            "possession_shape": [{k: n.get(k) for k in ("name", "number", "x", "y", "n", "sub")} for n in struct[s_]["nodes"]],
+            "defensive_shape": [{k: n.get(k) for k in ("name", "number", "x", "y", "n", "sub")} for n in struct[s_]["def_nodes"]],
         } for s_ in ("home", "away")} if struct else None,
         "players": players,
         "key_players": {s: key_player(s) for s in ("home", "away")},
@@ -712,6 +790,10 @@ def build_match(f, outdir, season, ctx):
         p = outdir / f"{m['id']}_{name}.webp"
         fn(m, p)
         figs[name] = p.name
+    if any(m["goalkeepers"][s_] for s_ in ("home", "away")):
+        p = outdir / f"{m['id']}_goalkeepers.webp"
+        fig_goalkeepers(m, p)
+        figs["goalkeepers"] = p.name
     if all(len(m["context"][s_]["form"]) >= 2 for s_ in ("home", "away")):
         p = outdir / f"{m['id']}_form.webp"
         fig_form(m, p)

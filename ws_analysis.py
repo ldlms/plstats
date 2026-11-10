@@ -119,23 +119,24 @@ def team_analysis(ws, side):
         if e["outcome"] != "Successful":
             continue
         passes_ok += 1
-        if e["playerId"] in starters:
+        if e["playerId"] in players:
             touches[e["playerId"]].append(m(e["x"], e["y"]))
         nxt = seq[i + 1] if i + 1 < len(seq) else None
         if nxt and nxt["teamId"] == tid and nxt["playerId"] != e["playerId"] and e.get("endX") is not None:
             r = nxt["playerId"]
-            if r in starters:
+            if r in players:
                 touches[r].append(m(e["endX"], e["endY"]))
-            if e["playerId"] in starters and r in starters:
+            if e["playerId"] in players and r in players:
                 links[tuple(sorted((e["playerId"], r)))] += 1
 
     nodes = []
-    for pid in starters:
+    for pid in players:
         pts = touches.get(pid, [])
         if len(pts) < 5:
             continue
         p = players[pid]
         nodes.append({"playerId": pid, "name": p["name"], "number": p.get("shirtNo"), "gk": pid in gk,
+                      "sub": pid not in starters, "sub_in": p.get("subbedInExpandedMinute"),
                       "x": round(st.mean(a for a, _ in pts), 1), "y": round(st.mean(b for _, b in pts), 1),
                       "n": len(pts)})
     by_id = {n["playerId"]: n for n in nodes}
@@ -147,7 +148,7 @@ def team_analysis(ws, side):
     def_pts = [m(e["x"], e["y"]) for e in def_events]
     per_player = defaultdict(list)
     for e in def_events:
-        if e["playerId"] in starters:
+        if e["playerId"] in players:
             per_player[e["playerId"]].append(m(e["x"], e["y"]))
     def_nodes = []
     for pid, pts in per_player.items():
@@ -155,6 +156,7 @@ def team_analysis(ws, side):
             continue
         p = players[pid]
         def_nodes.append({"playerId": pid, "name": p["name"], "number": p.get("shirtNo"),
+                          "sub": pid not in starters,
                           "x": round(st.mean(a for a, _ in pts), 1), "y": round(st.mean(b for _, b in pts), 1),
                           "n": len(pts)})
 
@@ -168,7 +170,7 @@ def team_analysis(ws, side):
                        or (e["teamId"] == tid and e["x"] > 50 and e["type"] == "Tackle" and e["outcome"] == "Successful"))
 
     def spread(ns):
-        out = [n for n in ns if not n.get("gk")]
+        out = [n for n in ns if not n.get("gk") and not n.get("sub")]
         if len(out) < 4:
             return None, None
         return (round(st.mean(n["x"] for n in out), 1),
@@ -196,6 +198,7 @@ def team_analysis(ws, side):
             "top_pass_links": [{"from": by_id[l["a"]]["name"], "to": by_id[l["b"]]["name"], "passes": l["n"]}
                                for l in top_links],
             "most_involved": max(nodes, key=lambda n: n["n"])["name"] if nodes else None,
+            "subs_in_shape": [n["name"] for n in nodes if n["sub"]],
             "key_passes": len(cr["key_passes"]),
             "final_third_entries": cr["final_third_entries"],
             "box_entries": cr["box_entries"],

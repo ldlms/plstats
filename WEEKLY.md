@@ -65,6 +65,11 @@ Règles :
     peut en tirer 1 ou 2 enseignements (sur- ou sous-performance nette).
 - Création (si `structure`) : `key_passes`, `box_entries` (par couloir), `shots_after_regain_10s`
   et `goals_after_regain_10s` (contres), `fast_shots`.
+- `substitutions` (minute, entrant, sortant, blessure) : citer un changement quand il a pesé
+  (but ou passe décisive d'un entrant, blessure qui change le match). Les entrants figurent dans
+  les graphes (cercles creux) et dans `players[*].sub_in`.
+- `goalkeepers` : arrêts, xGOT subis, buts évités, erreurs menant à un but. Un gardien décisif
+  (buts évités nettement positifs) ou fautif (erreur, buts évités très négatifs) mérite une ligne.
 - `team_of_round` : l'équipe type est affichée automatiquement, pas besoin de la commenter.
 - Points forts : `players[*].profile.strengths`, `profile.similar` (profils proches),
   `profile.history` (notes match par match) (centiles saison par poste) quand ils expliquent
