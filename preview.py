@@ -95,7 +95,7 @@ def keys_of_match(tp, ctx_rec, home, away):
 def key_players(season, team, k=3):
     cands = []
     for pid, a in season.agg.items():
-        if a.get("team") != team or a["apps"] < 3 or a["minutes"] < season.min_minutes:
+        if a.get("team_full", a.get("team")) != team or a["apps"] < 3 or a["minutes"] < season.min_minutes:
             continue
         rs = [h["rating"] for h in season.history.get(pid, []) if h.get("rating")]
         if len(rs) < 3:
@@ -210,8 +210,7 @@ def match_card(x, txt):
             f'<span class="ph" style="flex:{max(pr["home"], 6)}">{pr["home"]} %</span><span class="pd" style="flex:{max(pr["draw"], 6)}">{pr["draw"]} %</span>'
             f'<span class="pa" style="flex:{max(pr["away"], 6)}">{pr["away"]} %</span></div>'
             f'<div class="proj-l"><span>{esc(short(h))}</span><span>nul</span><span>{esc(short(a))}</span></div>'
-            f'<p class="muted" style="font-size:13.5px">xG attendus {fmt_num(pr["xg_home"], 1)} – {fmt_num(pr["xg_away"], 1)} · '
-            f'score le plus probable {pr["likely_score"][0]}-{pr["likely_score"][1]}. Indicatif : ne tient compte ni des absents ni de la forme du moment.</p></div>')
+            f'<p class="muted" style="font-size:13.5px">xG attendus {fmt_num(pr["xg_home"], 1)} – {fmt_num(pr["xg_away"], 1)}. Indicatif : ne tient compte ni des absents ni de la forme du moment.</p></div>')
     if x["keys"]:
         lis = "".join(f'<li class="{k["type"]}"><span class="th">{esc(k["theme"])}'
                       f'{" · avantage " + esc(short(k["team"])) if k["type"] == "avantage" else ""}'

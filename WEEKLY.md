@@ -12,7 +12,7 @@ python report.py --pending --ready --limit 3   # au plus 3 journées prêtes, ou
 ```
 
 `--ready` : seulement les journées dont tous les matchs ont leurs données WhoScored (ou ont été
-abandonnés après 3 essais). Au plus 3 journées par passage pour ménager le quota.
+abandonnés après 5 essais). Au plus 3 journées par passage pour ménager le quota.
 
 `AUCUNE` : rien de nouveau. Arrêter là et le dire en une phrase.
 

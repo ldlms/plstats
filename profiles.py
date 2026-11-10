@@ -82,6 +82,8 @@ class Season:
             self.matches += 1
             gen = d.get("general", {})
             teams_names = (gen.get("homeTeam", {}).get("name"), gen.get("awayTeam", {}).get("name"))
+            names_by_id = {str(gen.get("homeTeam", {}).get("id")): teams_names[0],
+                           str(gen.get("awayTeam", {}).get("id")): teams_names[1]}
             for pid, p in (d.get("content", {}).get("playerStats") or {}).items():
                 s = flatten(p)
                 mins = (s.get("minutes_played") or (0, None))[0] or 0
@@ -90,8 +92,9 @@ class Season:
                 a = agg[pid]
                 a["name"] = p.get("name")
                 a["team"] = p.get("teamName")
+                a["team_full"] = names_by_id.get(str(p.get("teamId")), p.get("teamName"))
                 rating = (s.get("rating_title") or (None, None))[0]
-                opp = teams_names[1] if p.get("teamName") == teams_names[0] else teams_names[0]
+                opp = teams_names[1] if a["team_full"] == teams_names[0] else teams_names[0]
                 self.history[pid].append({"date": f.name[:10], "round": gen.get("matchRound"),
                                           "opponent": opp, "rating": rating, "minutes": mins})
                 a["minutes"] += mins
