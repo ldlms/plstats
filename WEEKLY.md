@@ -98,7 +98,7 @@ Regarder une fois la page à largeur téléphone (capture `google-chrome --headl
   - si `reports/<saison>/manifest.json` a déjà un `artifact` pour N : republier ce slug
     (`get_artifact` pour la version de base) ;
   - sinon : nouvel artefact, titre « Premier League, journée N », icône `chart`, puis
-    `python report.py --record-artifact N <slug>`.
+    `python report.py --record-artifact N <slug>` (le slug UUID renvoyé par publish_files, pas l'identifiant de l'URL).
 - Git :
   ```bash
   git add reports && git commit -m "Rapport journée N" && git pull --rebase && git push
