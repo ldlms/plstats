@@ -70,6 +70,9 @@ Règles :
   les graphes (cercles creux) et dans `players[*].sub_in`.
 - `goalkeepers` : arrêts, xGOT subis, buts évités, erreurs menant à un but. Un gardien décisif
   (buts évités nettement positifs) ou fautif (erreur, buts évités très négatifs) mérite une ligne.
+- `matchup` : forces/faiblesses de chaque équipe sur la saison (rangs parmi les 20). Utile pour
+  expliquer un match (« la meilleure défense de la ligue a cédé sur coups de pied arrêtés, sa
+  faiblesse : 19e »). Ne pas tout recopier, c'est affiché.
 - `team_of_round` : l'équipe type est affichée automatiquement, pas besoin de la commenter.
 - Points forts : `players[*].profile.strengths`, `profile.similar` (profils proches),
   `profile.history` (notes match par match) (centiles saison par poste) quand ils expliquent
@@ -102,7 +105,18 @@ Regarder une fois la page à largeur téléphone (capture `google-chrome --headl
   ```
   (le VPS enverra le PDF sur Drive à la 20e minute suivante).
 
+## 5 bis. Fiches équipes (une fois par passage, après les journées)
+
+```bash
+python teams.py --pdf             # -> out/teams/index.html + reports/<saison>/PL <saison> - Fiches equipes.pdf
+```
+
+Republier l'artefact des fiches (`publish_files`, `out/teams/index.html` servi en `index.html`) avec le
+slug de `reports/<saison>/teams.json` (`get_artifact` pour la version de base). S'il n'existe pas :
+nouvel artefact « Premier League, fiches équipes », icône `chart`, puis
+`python teams.py --record-artifact <slug>`. Committer `reports/` avec le reste.
+
 ## 6. Terminer
 
 Message final court : les 2-3 faits marquants de la journée en une ligne chacun, le lien de la
-page, et « PDF sur Drive dans l'heure ». Signaler tout problème (match manquant, erreur de données).
+page, le lien des fiches équipes, et « PDF sur Drive dans l'heure ». Signaler tout problème (match manquant, erreur de données).

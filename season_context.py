@@ -60,6 +60,8 @@ class SeasonContext:
     def __init__(self, season_dir: Path, until_date: str):
         """until_date : 'AAAA-MM-JJ' inclus (date du dernier match de la journée)."""
         self.rows = []          # une ligne par équipe et par match
+        self.season_dir = Path(season_dir)
+        self.until_date = until_date
         for f in sorted(Path(season_dir).glob("*.json")):
             if f.name.endswith("_heatmap.json") or f.name[:10] > until_date:
                 continue
@@ -82,7 +84,24 @@ class SeasonContext:
             }
             xp_h, xp_a = expected_points(xg_shots["home"], xg_shots["away"])
             ws = ws_analysis.load(f.parent, g["matchId"])
-            wsm = {sd: ws_analysis.team_analysis(ws, sd)["metrics"] for sd in ("home", "away")} if ws else None
+            wsa = {sd: ws_analysis.team_analysis(ws, sd) for sd in ("home", "away")} if ws else None
+            wsm = {sd: wsa[sd]["metrics"] for sd in ("home", "away")} if ws else None
+            # scénario : a mené / a été mené
+            goals_ev = [e for e in c.get("matchFacts", {}).get("events", {}).get("events", []) if e.get("type") == "Goal"]
+            goals_ev.sort(key=lambda e: (e.get("time", 0), e.get("overloadTime") or 0))
+            sh = sa = 0
+            led = {"home": False, "away": False}
+            trailed = {"home": False, "away": False}
+            for e in goals_ev:
+                if e.get("isHome"):
+                    sh += 1
+                else:
+                    sa += 1
+                if sh > sa:
+                    led["home"], trailed["away"] = True, True
+                elif sa > sh:
+                    led["away"], trailed["home"] = True, True
+            zones = {sd: c.get("attackingZones", {}).get(sd, {}).get("total") for sd in ("home", "away")}
             for i, side in enumerate(("home", "away")):
                 o = 1 - i
                 gf, ga = score[i], score[o]
@@ -103,11 +122,29 @@ class SeasonContext:
                     "shots": two("total_shots")[0], "big_chances": two("big_chance")[0],
                     "touches_box": two("touches_opp_box")[0],
                 }
+                xg_for, xg_ag = two("expected_goals")
+                shots_for, shots_ag = two("total_shots")
+                xgot_for, xgot_ag = two("expected_goals_on_target")
+                row.update({
+                    "shots_against": shots_ag, "big_chances_against": two("big_chance")[1],
+                    "touches_box_against": two("touches_opp_box")[1],
+                    "xg_set_for": two("expected_goals_set_play")[0], "xg_set_against": two("expected_goals_set_play")[1],
+                    "xg_per_shot": round(xg_for / shots_for, 3) if xg_for is not None and shots_for else None,
+                    "finishing": round(gf - xg_for, 2) if xg_for is not None else None,
+                    "gk_prevented": round(xgot_ag - ga, 2) if xgot_ag is not None else None,
+                    "led": led[side], "trailed": trailed[side],
+                    "zones_for": zones[side], "zones_against": zones[("away", "home")[i]],
+                })
                 if wsm:
                     mt = wsm[side]
+                    mo = wsm[("away", "home")[i]]
                     row.update({"ppda": mt["ppda"], "def_height": mt["defensive_actions_avg_height_m"],
                                 "high_regains": mt["high_regains"], "poss_height": mt["possession_block_height_m"],
-                                "pass_acc": mt["pass_accuracy_open_play_pct"], "box_entries": mt["box_entries_total"]})
+                                "pass_acc": mt["pass_accuracy_open_play_pct"], "box_entries": mt["box_entries_total"],
+                                "key_passes": mt["key_passes"], "fast_shots_for": mt["shots_after_regain_10s"],
+                                "fast_shots_against": mo["shots_after_regain_10s"],
+                                "box_entries_against": mo["box_entries_total"],
+                                "_def_points": wsa[side]["def_points"]})
                 self.rows.append(row)
         self.by_team = defaultdict(list)
         for r in self.rows:

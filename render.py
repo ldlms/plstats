@@ -145,6 +145,8 @@ figcaption { font-size: 14px; color: var(--muted); }
 .top { font-size: 14px; color: var(--muted); text-align: right; }
 footer { font-size: 13px; color: var(--muted); }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.mu-l { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 6px; }
+.tag.good { border-color: #3c7d55; } .tag.bad { border-color: #8a4040; }
 .subs { display: grid; gap: 4px; }
 .subs-t { text-align: center; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .subs .scorers { font-size: 13.5px; }
@@ -444,6 +446,32 @@ TIP_JS = """
 
 
 # ------------------------------------------------------------------ blocs HTML
+def _ord(n):
+    return "1er" if n == 1 else f"{n}e"
+
+
+def matchup_block(m):
+    mu = m.get("matchup")
+    if not mu:
+        return ""
+    cols = []
+    for side in ("home", "away"):
+        x = mu[side]
+        if x["matches"] < 3:
+            body = '<p class="muted">Pas encore assez de matchs pour un profil.</p>'
+        else:
+            f = "".join(f'<span class="tag good">{esc(r["label"])} <b>{_ord(r["rank"])}</b></span>' for r in x["forces"]) \
+                or '<span class="muted">rien dans le top 4</span>'
+            w = "".join(f'<span class="tag bad">{esc(r["label"])} <b>{_ord(r["rank"])}</b></span>' for r in x["faiblesses"]) \
+                or '<span class="muted">rien dans les 4 derniers</span>'
+            body = f'<div class="mu-l">Forces</div><div>{f}</div><div class="mu-l">Faiblesses</div><div>{w}</div>'
+        rank = f' <span class="muted">{_ord(x["rank"])}, {x["points"]} pts</span>' if x.get("rank") else ""
+        cols.append(f'<div><div class="hab-t"><span class="dot {side}"></span> {esc(m[side + "_short"])}{rank}</div>{body}</div>')
+    return ('<div class="habits mu" aria-label="Face-à-face"><h4>Face-à-face sur la saison</h4>'
+            + "".join(cols) + '<p class="muted">Rangs parmi les 20 équipes, données jusqu\'à cette journée. '
+            'Le détail est dans les fiches équipes.</p></div>')
+
+
 def goalkeepers_block(m):
     gks = m.get("goalkeepers") or {}
     items = []
@@ -593,6 +621,7 @@ def match_section(m, txt, outdir):
         parts.append('<div class="story">' + "".join(story) + "</div>")
 
     parts.append(habits_block(m))
+    parts.append(matchup_block(m))
 
     rows = [
         bar_row("Possession", *(st.get("possession") or [None, None]), suffix=" %"),

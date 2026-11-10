@@ -26,6 +26,7 @@ from profiles import Season, flatten, match_highlights  # noqa: E402
 import manifest  # noqa: E402
 import ws_analysis  # noqa: E402
 from season_context import SeasonContext  # noqa: E402
+from team_profiles import TeamProfiles  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -898,6 +899,16 @@ def main():
     table = ctx.table()
     for r in table:
         r["short"] = short(r["team"])
+    tp = TeamProfiles(ctx)
+    by_t = {r["team"]: r for r in table}
+    for m in matches:
+        m["matchup"] = {}
+        for side in ("home", "away"):
+            pr = tp.profile(m[side])
+            lite = lambda rows: [{"label": r["label"], "rank": r["rank"], "value": r["value"], "decimals": r["decimals"]} for r in rows]
+            m["matchup"][side] = {"rank": by_t.get(m[side], {}).get("rank"), "points": by_t.get(m[side], {}).get("points"),
+                                  "forces": lite(pr["forces"]), "faiblesses": lite(pr["faiblesses"]),
+                                  "matches": pr["matches"]}
     xi = team_of_round(matches)
     if xi:
         fig_team_of_round(xi, rnd, outdir / "team_of_round.webp")
