@@ -64,7 +64,9 @@ class TeamProfiles:
             rows = ctx.by_team[t]
             self.avg[t] = {}
             self.n[t] = {}
-            for key, *_ in PROFILE + [(k, None, None, None, None) for k, *_ in STYLE]:
+            extra = [(k, None, None, None, None) for k, *_ in STYLE] + \
+                [(k, None, None, None, None) for k in ("box_entries_against", "touches_box_against")]
+            for key, *_ in PROFILE + extra:
                 vals = [r[key] for r in rows if r.get(key) is not None]
                 self.n[t][key] = len(vals)
                 self.avg[t][key] = st.mean(vals) if vals else None
@@ -80,6 +82,10 @@ class TeamProfiles:
         r = order.index(team) + 1
         pct = round(100 * (len(order) - r) / (len(order) - 1)) if len(order) > 1 else 50
         return r, pct
+
+    def rank_any(self, team, key, better):
+        """Rang (1 = meilleur) sur n'importe quelle moyenne calculée."""
+        return self.rank(team, key, better)[0]
 
     def profile(self, team):
         rows = []
