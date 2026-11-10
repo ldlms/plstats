@@ -31,26 +31,51 @@ from team_profiles import TeamProfiles  # noqa: E402
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 
-# Thème sombre unique (validé : bleu/orange séparables en daltonisme)
-SURFACE = "#141917"
-PITCH = "#18201c"
-LINE = "#3d4943"
-TEXT = "#e8ece9"
-MUTED = "#9aa59f"
-HOME = "#3987e5"
-AWAY = "#d95926"
-HOME_TINT = "#d6e6fb"
-AWAY_TINT = "#fbdccb"
+# Deux thèmes : sombre pour la page web, clair pour le PDF (bleu/orange séparables en
+# daltonisme dans les deux). « Tint » = couleur des liaisons de passes et du haut des heatmaps :
+# claire sur fond sombre, foncée sur fond clair.
+THEMES = {
+    "dark": {"SURFACE": "#141917", "PITCH": "#18201c", "LINE": "#3d4943", "TEXT": "#e8ece9",
+             "MUTED": "#9aa59f", "HOME": "#3987e5", "AWAY": "#d95926",
+             "HOME_TINT": "#d6e6fb", "AWAY_TINT": "#fbdccb"},
+    "light": {"SURFACE": "#ffffff", "PITCH": "#eef3ef", "LINE": "#aab6af", "TEXT": "#17201b",
+              "MUTED": "#56635c", "HOME": "#2a6fcb", "AWAY": "#c4501d",
+              "HOME_TINT": "#123f78", "AWAY_TINT": "#7a2c0b"},
+}
+THEME = "dark"
+SURFACE = PITCH = LINE = TEXT = MUTED = HOME = AWAY = HOME_TINT = AWAY_TINT = None
 
-plt.rcParams.update({
-    "font.family": ["Inter", "DejaVu Sans"],
-    "text.color": TEXT,
-    "axes.labelcolor": MUTED,
-    "xtick.color": MUTED,
-    "ytick.color": MUTED,
-    "figure.facecolor": SURFACE,
-    "savefig.facecolor": SURFACE,
-})
+
+def set_theme(name):
+    """Change les couleurs utilisées par toutes les fonctions de graphe (lues à l'appel)."""
+    global THEME
+    globals().update(THEMES[name])
+    THEME = name
+    plt.rcParams.update({
+        "font.family": ["Inter", "DejaVu Sans"],
+        "text.color": TEXT,
+        "axes.labelcolor": MUTED,
+        "xtick.color": MUTED,
+        "ytick.color": MUTED,
+        "figure.facecolor": SURFACE,
+        "savefig.facecolor": SURFACE,
+    })
+
+
+class theme:
+    """with theme("light"): ... puis retour au thème précédent."""
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        self.prev = THEME
+        set_theme(self.name)
+
+    def __exit__(self, *exc):
+        set_theme(self.prev)
+
+
+set_theme("dark")
 
 CIRCLE = re.compile(r'cx="([\d.]+)" cy="([\d.]+)"')
 L, W = 105.0, 68.0
@@ -382,7 +407,11 @@ def heat_grid(pts, sigma=1.6):
 
 
 def draw_heat(ax, pitch, pts, color, tint, title, subtitle):
-    cmap = LinearSegmentedColormap.from_list("t", [PITCH, color, tint])
+    if THEME == "light":  # sur fond clair : pâle → couleur → foncé, pour que les zones peu fréquentées restent claires
+        pale = tuple(0.62 + 0.38 * c for c in matplotlib.colors.to_rgb(color))
+        cmap = LinearSegmentedColormap.from_list("t", [PITCH, pale, color, tint])
+    else:
+        cmap = LinearSegmentedColormap.from_list("t", [PITCH, color, tint])
     H = heat_grid(pts)
     if H is not None:
         ax.imshow(H.T, origin="lower", extent=[0, L, 0, W], cmap=cmap, vmin=0.04, vmax=1,
@@ -626,6 +655,50 @@ def fig_goalkeepers(m, path):
     save(fig, path)
 
 
+def _phase_with(ax, pitch, p, color, tint, big=False):
+    """Avec le ballon : liaisons de passes et position moyenne des joueurs de la phase."""
+    pitch.draw(ax=ax)
+    by = {x["name"]: x for x in p["nodes"]}
+    nmax = max([e["n"] for e in p["edges"]] + [1])
+    for e in p["edges"]:
+        a, b = by[e["a"]], by[e["b"]]
+        ax.plot([a["x"], b["x"]], [a["y"], b["y"]], color=tint, lw=(0.8 + 4.6 * e["n"] / nmax) if big else (0.6 + 3.4 * e["n"] / nmax),
+                alpha=0.25 + 0.55 * e["n"] / nmax, zorder=3, solid_capstyle="round")
+    for x in p["nodes"]:
+        new = x.get("new")
+        pitch.scatter(x["x"], x["y"], s=300 if big else 150, ax=ax, facecolor=PITCH if new else color,
+                      edgecolor=color if new else SURFACE, linewidth=2 if big else 1.6, zorder=4)
+        ax.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=9.5 if big else 7,
+                fontweight="bold", color=color if new else "white", zorder=5)
+
+
+def _phase_without(bx, pitch, p, color, big=False):
+    """Sans le ballon : actions défensives et leur position moyenne par joueur."""
+    pitch.draw(ax=bx)
+    mt = p["metrics"]
+    if p["def_points"]:
+        xs, ys = zip(*p["def_points"])
+        pitch.scatter(xs, ys, s=18 if big else 10, ax=bx, facecolor=color, edgecolor="none", alpha=0.35, zorder=3)
+    for x in p["def_nodes"]:
+        new = x.get("new")
+        pitch.scatter(x["x"], x["y"], s=260 if big else 130, ax=bx, facecolor=PITCH if new else color,
+                      edgecolor=color if new else SURFACE, linewidth=2 if big else 1.6, zorder=4)
+        bx.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=9 if big else 7,
+                fontweight="bold", color=color if new else "white", zorder=5)
+    h = mt["defensive_actions_avg_height_m"]
+    if h:
+        bx.plot([h, h], [0, W], color=TEXT, lw=1 if big else 0.8, ls=(0, (3, 3)), alpha=0.6, zorder=2)
+
+
+def _phase_lines(p):
+    mt = p["metrics"]
+    h = mt["defensive_actions_avg_height_m"]
+    with_sub = (f"{mt['pass_share_pct']} % des passes · bloc {mt['possession_block_height_m'] or 0:.0f} m · "
+                f"xG {mt.get('xg_for', 0):.2f}").replace(".", ",")
+    without_sub = f"actions déf. à {h or 0:.0f} m · xG concédés {mt.get('xg_against', 0):.2f}".replace(".", ",")
+    return with_sub, without_sub
+
+
 def fig_phases(m, side, path):
     """Une ligne par phase : avec le ballon (gauche) et sans le ballon (droite)."""
     color, tint = (HOME, HOME_TINT) if side == "home" else (AWAY, AWAY_TINT)
@@ -636,43 +709,31 @@ def fig_phases(m, side, path):
     if n == 1:
         axes = [axes]
     for row, p in zip(axes, ph):
-        ax = row[0]
-        pitch.draw(ax=ax)
-        by = {x["name"]: x for x in p["nodes"]}
-        nmax = max([e["n"] for e in p["edges"]] + [1])
-        for e in p["edges"]:
-            a, b = by[e["a"]], by[e["b"]]
-            ax.plot([a["x"], b["x"]], [a["y"], b["y"]], color=tint, lw=0.6 + 3.4 * e["n"] / nmax,
-                    alpha=0.25 + 0.55 * e["n"] / nmax, zorder=3, solid_capstyle="round")
-        for x in p["nodes"]:
-            new = x.get("new")
-            pitch.scatter(x["x"], x["y"], s=150, ax=ax, facecolor=PITCH if new else color,
-                          edgecolor=color if new else SURFACE, linewidth=1.6, zorder=4)
-            ax.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=7, fontweight="bold",
-                    color=color if new else "white", zorder=5)
-        mt = p["metrics"]
+        ax, bx = row
+        with_sub, without_sub = _phase_lines(p)
+        _phase_with(ax, pitch, p, color, tint)
         ax.text(0, W + 10, f"{p['label']} · {p['formation'] or ''} · avec le ballon", fontsize=9.5,
                 fontweight="bold", color=color, va="center")
-        ax.text(0, W + 4, f"{mt['pass_share_pct']} % des passes · bloc {mt['possession_block_height_m'] or 0:.0f} m · "
-                f"xG {mt.get('xg_for', 0):.2f}".replace(".", ","), fontsize=8, color=MUTED, va="center")
-        bx = row[1]
-        pitch.draw(ax=bx)
-        if p["def_points"]:
-            xs, ys = zip(*p["def_points"])
-            pitch.scatter(xs, ys, s=10, ax=bx, facecolor=color, edgecolor="none", alpha=0.35, zorder=3)
-        for x in p["def_nodes"]:
-            new = x.get("new")
-            pitch.scatter(x["x"], x["y"], s=130, ax=bx, facecolor=PITCH if new else color,
-                          edgecolor=color if new else SURFACE, linewidth=1.6, zorder=4)
-            bx.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=7, fontweight="bold",
-                    color=color if new else "white", zorder=5)
-        h = mt["defensive_actions_avg_height_m"]
-        if h:
-            bx.plot([h, h], [0, W], color=TEXT, lw=0.8, ls=(0, (3, 3)), alpha=0.6, zorder=2)
+        ax.text(0, W + 4, with_sub, fontsize=8, color=MUTED, va="center")
+        _phase_without(bx, pitch, p, color)
         bx.text(0, W + 10, "sans le ballon", fontsize=9.5, fontweight="bold", color=color, va="center")
-        bx.text(0, W + 4, f"actions déf. à {h or 0:.0f} m · xG concédés {mt.get('xg_against', 0):.2f}".replace(".", ","),
-                fontsize=8, color=MUTED, va="center")
+        bx.text(0, W + 4, without_sub, fontsize=8, color=MUTED, va="center")
     fig.subplots_adjust(hspace=0.18, wspace=0.06)
+    save(fig, path)
+
+
+def fig_phase_single(m, side, k, path):
+    """PDF : une phase par image, avec le ballon au-dessus et sans le ballon en dessous (lisible en une colonne)."""
+    color, tint = (HOME, HOME_TINT) if side == "home" else (AWAY, AWAY_TINT)
+    p = m["phases"][side][k]
+    pitch = new_pitch(pad_top=12, pad_bottom=1)
+    fig, (ax, bx) = plt.subplots(2, 1, figsize=(FW, FW * 1.5))
+    with_sub, without_sub = _phase_lines(p)
+    _phase_with(ax, pitch, p, color, tint, big=True)
+    panel_title(ax, f"{short(m[side])}, {p['label']} · {p['formation'] or ''} · avec le ballon", with_sub, color)
+    _phase_without(bx, pitch, p, color, big=True)
+    panel_title(bx, "Sans le ballon", without_sub, color)
+    fig.subplots_adjust(hspace=0.12)
     save(fig, path)
 
 
@@ -740,6 +801,47 @@ def composition(f, g, lineup, side):
             "changes_out": [n for i, n in prev_ids.items() if i not in cur_ids],
         })
     return out
+
+
+def make_figures(m, struct, outdir):
+    figs = {}
+    for name, fn in (("momentum", fig_momentum), ("shots", fig_shots), ("positions", fig_positions),
+                     ("heatmaps", fig_team_heatmaps)):
+        if name == "momentum" and not m["_momentum"]:
+            continue
+        if name == "positions" and struct:
+            for side in ("home", "away"):
+                p = outdir / f"{m['id']}_shape_{side}.webp"
+                fig_team_shape(m, side, struct[side], p)
+                figs[f"shape_{side}"] = p.name
+                p = outdir / f"{m['id']}_creation_{side}.webp"
+                fig_creation(m, side, struct[side]["creation"], p)
+                figs[f"creation_{side}"] = p.name
+                if m.get("phases"):
+                    p = outdir / f"{m['id']}_phases_{side}.webp"
+                    fig_phases(m, side, p)
+                    figs[f"phases_{side}"] = p.name
+                    if THEME == "light":  # PDF : une image par phase
+                        for k in range(len(m["phases"][side])):
+                            fig_phase_single(m, side, k, outdir / f"{m['id']}_phase{k + 1}_{side}.webp")
+            continue
+        p = outdir / f"{m['id']}_{name}.webp"
+        fn(m, p)
+        figs[name] = p.name
+    if any(m["goalkeepers"][s_] for s_ in ("home", "away")):
+        p = outdir / f"{m['id']}_goalkeepers.webp"
+        fig_goalkeepers(m, p)
+        figs["goalkeepers"] = p.name
+    if all(len(m["context"][s_]["form"]) >= 2 for s_ in ("home", "away")):
+        p = outdir / f"{m['id']}_form.webp"
+        fig_form(m, p)
+        figs["form"] = p.name
+    for side in ("home", "away"):
+        if m["key_players"][side]:
+            p = outdir / f"{m['id']}_player_{side}.webp"
+            fig_player(m, side, p)
+            figs[f"player_{side}"] = p.name
+    return figs
 
 
 def build_match(f, outdir, season, ctx):
@@ -867,41 +969,11 @@ def build_match(f, outdir, season, ctx):
     tot = (ft["home"] + ft["away"]) or 1
     m["final_third_share_pct"] = [round(100 * ft["home"] / tot), round(100 * ft["away"] / tot)]
 
-    figs = {}
-    for name, fn in (("momentum", fig_momentum), ("shots", fig_shots), ("positions", fig_positions),
-                     ("heatmaps", fig_team_heatmaps)):
-        if name == "momentum" and not m["_momentum"]:
-            continue
-        if name == "positions" and struct:
-            for side in ("home", "away"):
-                p = outdir / f"{m['id']}_shape_{side}.webp"
-                fig_team_shape(m, side, struct[side], p)
-                figs[f"shape_{side}"] = p.name
-                p = outdir / f"{m['id']}_creation_{side}.webp"
-                fig_creation(m, side, struct[side]["creation"], p)
-                figs[f"creation_{side}"] = p.name
-                if m.get("phases"):
-                    p = outdir / f"{m['id']}_phases_{side}.webp"
-                    fig_phases(m, side, p)
-                    figs[f"phases_{side}"] = p.name
-            continue
-        p = outdir / f"{m['id']}_{name}.webp"
-        fn(m, p)
-        figs[name] = p.name
-    if any(m["goalkeepers"][s_] for s_ in ("home", "away")):
-        p = outdir / f"{m['id']}_goalkeepers.webp"
-        fig_goalkeepers(m, p)
-        figs["goalkeepers"] = p.name
-    if all(len(m["context"][s_]["form"]) >= 2 for s_ in ("home", "away")):
-        p = outdir / f"{m['id']}_form.webp"
-        fig_form(m, p)
-        figs["form"] = p.name
-    for side in ("home", "away"):
-        if m["key_players"][side]:
-            p = outdir / f"{m['id']}_player_{side}.webp"
-            fig_player(m, side, p)
-            figs[f"player_{side}"] = p.name
-    m["figures"] = figs
+    m["figures"] = make_figures(m, struct, outdir)
+    pdir = outdir / "print"
+    pdir.mkdir(exist_ok=True)
+    with theme("light"):  # même graphes en clair pour le PDF
+        make_figures(m, struct, pdir)
 
     # Nettoyage pour le JSON : on retire les points bruts
     def clean(p):
@@ -946,8 +1018,8 @@ def main():
     ap.add_argument("--ready", action="store_true",
                     help="avec --pending : seulement les journées dont tous les matchs ont leurs données WhoScored")
     ap.add_argument("--limit", type=int, default=0, help="avec --pending : nombre max de journées")
-    ap.add_argument("--record-artifact", nargs=2, metavar=("JOURNEE", "SLUG"),
-                    help="note l'artefact publié pour une journée")
+    ap.add_argument("--record-artifact", nargs="+", metavar="JOURNEE SLUG [URL]",
+                    help="note l'artefact publié pour une journée (et son adresse claude.ai/artifact/…)")
     args = ap.parse_args()
 
     latest = max(match_files(), key=lambda f: f.name[:10])
@@ -971,7 +1043,9 @@ def main():
         print(" ".join(map(str, todo)) if todo else "AUCUNE")
         return
     if args.record_artifact:
-        manifest.record_artifact(season_name, args.record_artifact[0], args.record_artifact[1])
+        if len(args.record_artifact) not in (2, 3):
+            raise SystemExit("--record-artifact JOURNEE SLUG [URL]")
+        manifest.record_artifact(season_name, *args.record_artifact)
         print("Artefact noté")
         return
 
@@ -1009,6 +1083,8 @@ def main():
     xi = team_of_round(matches)
     if xi:
         fig_team_of_round(xi, rnd, outdir / "team_of_round.webp")
+        with theme("light"):
+            fig_team_of_round(xi, rnd, outdir / "print" / "team_of_round.webp")
     summary = {"round": int(rnd), "season": files[0].parent.name, "matches": matches,
                "data_until": cutoff, "xg_table": table, "team_of_round": xi,
                "team_of_round_figure": "team_of_round.webp" if xi else None,

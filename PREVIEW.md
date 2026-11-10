@@ -39,15 +39,22 @@ Règles :
 
 Relire chaque chiffre contre `summary.json`.
 
-## 4. Page, PDF, publication
+## 4. Publication, puis PDF
+
+L'ordre compte : le PDF contient le lien vers la page web.
 
 ```bash
-python preview.py --round N --pdf   # -> reports/<saison>/PL <saison> - Apercu journee NN.pdf + registre previews.json
+python preview.py --round N         # régénère out/PN/index.html avec le texte
 ```
 
 - Artefact (`publish_files`, `out/PN/index.html` servi en `index.html`) : si `reports/<saison>/previews.json`
   a un `artifact` pour N, republier ce slug (`get_artifact` pour la version de base) ; sinon nouvel artefact
-  « Premier League, aperçu journée N », icône `chart`, puis `python preview.py --record-artifact N <slug>`.
+  « Premier League, aperçu journée N », icône `chart`. Puis dans les deux cas
+  `python preview.py --record-artifact N <slug> <url>` (url = champ `url` renvoyé, `https://claude.ai/artifact/…`).
+- PDF (format téléphone, thème clair, signets, lien vers la page web) :
+  ```bash
+  python preview.py --round N --pdf   # -> reports/<saison>/PL <saison> - Apercu journee NN.pdf + registre previews.json
+  ```
 - `git add reports && git commit -m "Aperçu journée N" && git pull --rebase && git push`
   (le VPS enverra le PDF sur Drive dans l'heure).
 

@@ -91,22 +91,32 @@ Règles :
 
 Avant de continuer, relire chaque nombre du texte contre `summary.json` (script Python si besoin).
 
-## 4. Page, PDF, registre
+## 4. Page web
 
 ```bash
-python render.py --round N --pdf  # -> out/JN/index.html + reports/<saison>/PL <saison> - Journee NN.pdf
+python render.py --round N        # -> out/JN/index.html (page interactive, thème sombre)
 ```
 
 Regarder une fois la page à largeur téléphone (capture `google-chrome --headless=new
 --screenshot --window-size=400,2600`) et corriger ce qui est visiblement cassé.
 
-## 5. Publier
+## 5. Publier, puis PDF
+
+L'ordre compte : le PDF contient le lien vers la page web, il se fait donc après la publication.
 
 - Artefact (outil claude-artifacts, `publish_files` avec `out/JN/index.html` servi en `index.html`) :
   - si `reports/<saison>/manifest.json` a déjà un `artifact` pour N : republier ce slug
     (`get_artifact` pour la version de base) ;
-  - sinon : nouvel artefact, titre « Premier League, journée N », icône `chart`, puis
-    `python report.py --record-artifact N <slug>` (le slug UUID renvoyé par publish_files, pas l'identifiant de l'URL).
+  - sinon : nouvel artefact, titre « Premier League, journée N », icône `chart`.
+  - Puis, dans les deux cas, enregistrer le slug et l'adresse :
+    `python report.py --record-artifact N <slug> <url>` (slug = UUID renvoyé par publish_files ;
+    url = son champ `url`, de la forme `https://claude.ai/artifact/…`).
+- PDF (format téléphone, thème clair, sommaire cliquable, signets, lien vers la page web) :
+  ```bash
+  python render.py --round N --pdf  # -> reports/<saison>/PL <saison> - Journee NN.pdf + registre
+  ```
+  Vérifier en 1 minute : `pdftoppm -r 50 -jpeg -f 1 -l 8 <pdf> /tmp/p` puis regarder les pages
+  (pas de page presque vide, pas de texte coupé).
 - Git :
   ```bash
   git add reports && git commit -m "Rapport journée N" && git pull --rebase && git push
@@ -116,13 +126,19 @@ Regarder une fois la page à largeur téléphone (capture `google-chrome --headl
 ## 5 bis. Fiches équipes (une fois par passage, après les journées)
 
 ```bash
-python teams.py --pdf             # -> out/teams/index.html + reports/<saison>/PL <saison> - Fiches equipes.pdf
+python teams.py                   # -> out/teams/index.html
 ```
 
 Republier l'artefact des fiches (`publish_files`, `out/teams/index.html` servi en `index.html`) avec le
 slug de `reports/<saison>/teams.json` (`get_artifact` pour la version de base). S'il n'existe pas :
 nouvel artefact « Premier League, fiches équipes », icône `chart`, puis
-`python teams.py --record-artifact <slug>`. Committer `reports/` avec le reste.
+`python teams.py --record-artifact <slug> <url>`. Ensuite seulement :
+
+```bash
+python teams.py --pdf             # -> reports/<saison>/PL <saison> - Fiches equipes.pdf
+```
+
+Committer `reports/` avec le reste.
 
 ## 6. Terminer
 

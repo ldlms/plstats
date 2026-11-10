@@ -3,7 +3,7 @@
 comportement selon le score, domicile/extérieur. Données arrêtées au dernier match collecté.
 
 Usage : python teams.py [--pdf]          -> out/teams/index.html (+ reports/<saison>/Fiches equipes.pdf)
-        python teams.py --record-artifact <slug>
+        python teams.py --record-artifact <slug> [<url claude.ai/artifact/…>]
 """
 import argparse
 import json
@@ -18,7 +18,8 @@ from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 
 import render  # noqa: E402
 from render import CSS, TIP_JS, esc, fmt_num, img, make_pdf, MOIS  # noqa: E402
-from report import AWAY, FW, HOME, L, MUTED, PITCH, SURFACE, TEXT, W, new_pitch, panel_title, save, short  # noqa: E402
+import report as R  # noqa: E402  (couleurs lues à l'appel : thème sombre ou clair)
+from report import FW, L, W, new_pitch, panel_title, save, short  # noqa: E402
 from season_context import SeasonContext  # noqa: E402
 from team_profiles import TeamProfiles  # noqa: E402
 
@@ -31,7 +32,7 @@ def slug(s):
 
 
 def fig_zones(tp, team, path):
-    cmap = LinearSegmentedColormap.from_list("div", [AWAY, PITCH, HOME])
+    cmap = LinearSegmentedColormap.from_list("div", [R.AWAY, R.PITCH, R.HOME])
     pitch = new_pitch(pad_top=12, pad_bottom=1)
     fig, axes = plt.subplots(2, 1, figsize=(FW, FW * 1.5))
     ok = False
@@ -44,7 +45,7 @@ def fig_zones(tp, team, path):
             ax.imshow(diff.T, origin="lower", extent=[0, L, 0, W], cmap=cmap, vmin=-v, vmax=v,
                       interpolation="bilinear", zorder=1, aspect="auto")
         pitch.draw(ax=ax)
-        panel_title(ax, f"{title} par rapport à la moyenne", sub, TEXT)
+        panel_title(ax, f"{title} par rapport à la moyenne", sub, R.TEXT)
     fig.subplots_adjust(hspace=0.12)
     if ok:
         save(fig, path)
@@ -57,7 +58,7 @@ def ordinal(n):
     return "1er" if n == 1 else f"{n}e"
 
 
-def team_section(tp, team, table_row, outdir):
+def team_section(tp, team, table_row, outdir, has_zones):
     p = tp.profile(team)
     rec = tp.record(team)
     sid = "t-" + slug(team)
@@ -91,7 +92,7 @@ def team_section(tp, team, table_row, outdir):
     # zones
     zimg = ""
     zp = outdir / f"zones_{slug(team)}.webp"
-    if fig_zones(tp, team, zp):
+    if has_zones:
         zimg = (f'<figure><img src="{img(zp)}" alt="Zones d\'occupation de {esc(team)} par rapport à la moyenne" loading="lazy">'
                 f'<figcaption>Bleu : l\'équipe y fait plus d\'actions que la moyenne de la ligue ; orange : moins. '
                 f'Toujours dans le sens de son attaque (vers la droite).</figcaption></figure>')
@@ -125,7 +126,7 @@ def team_section(tp, team, table_row, outdir):
              f'</tbody></table>')
 
     return f"""<details class="team" id="{sid}">
-<summary><div class="tname">{esc(team)}</div><div class="thead">{head}</div><div class="tform">{form}</div>
+<summary><h2 class="sr">{esc(team)}</h2><div class="tname">{esc(team)}</div><div class="thead">{head}</div><div class="tform">{form}</div>
 <div class="ttags"><div><span class="lbl">Forces</span>{tags_f}</div><div><span class="lbl">Faiblesses</span>{tags_w}</div></div></summary>
 <div class="tbody">
   <div class="tstyle"><span class="lbl">Style</span> {style}</div>
@@ -173,7 +174,22 @@ details.team[open] > summary::after { content: "Replier ▴"; }
 .ven th, .ven td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 .ven th:first-child, .ven td:first-child { text-align: left; }
 .ven th { color: var(--muted); font-weight: 600; font-size: 13px; }
-@media print { details.team { break-before: page; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+"""
+
+# PDF (thème clair, format téléphone) : compléments à render.PRINT_CSS
+PRINT_EXTRA = """
+details.team { background: none; border: 0; border-radius: 0; padding: 0; }
+details.team > summary::after { display: none; }
+.tname { font-size: 22px; }
+.thead, .tstyle, .zl, .pr-l { font-size: 12.5px; }
+.ven { font-size: 12px; }
+.pr { margin-bottom: 6px; grid-template-columns: 1fr 4em; }
+.pr-v { font-size: 12px; white-space: nowrap; }
+.fm-V { background: #d5eedd; } .fm-N { background: #e4e8e6; } .fm-D { background: #f6d8d8; }
+.tindex a { font-size: 11.5px; padding: 3px 7px; }
+.pcat, .pr, .zl li, .ven { break-inside: avoid; }
+.tbody h4 { break-after: avoid; }
 """
 
 
@@ -192,16 +208,35 @@ def build(pdf=False):
     by_team = {r["team"]: r for r in table}
     order = [r["team"] for r in table]
     index = "".join(f'<a href="#t-{slug(t)}">{by_team[t]["rank"]}. {esc(short(t))}</a>' for t in order)
-    sections = "".join(team_section(tp, t, by_team[t], outdir) for t in order)
+    # zones d'occupation : thème sombre pour la page, clair pour le PDF
+    (outdir / "print").mkdir(exist_ok=True)
+    has_zones = {}
+    for t in order:
+        has_zones[t] = fig_zones(tp, t, outdir / f"zones_{slug(t)}.webp")
+        with R.theme("light"):
+            fig_zones(tp, t, outdir / "print" / f"zones_{slug(t)}.webp")
+    reg_p = ROOT / "reports" / season_dir.name / "teams.json"
+    url = json.loads(reg_p.read_text()).get("url") if reg_p.exists() else None
+
+    def make_body(for_print):
+        render.FOR_PRINT = for_print
+        try:
+            secs = "".join(team_section(tp, t, by_team[t], outdir, has_zones[t]) for t in order)
+        finally:
+            render.FOR_PRINT = False
+        ilink = (f'<p class="ilink"><a href="{esc(url)}">Version interactive (page web) ↗</a></p>'
+                 if for_print and url else "")
+        return body_tpl.replace("{{SECTIONS}}", secs).replace("{{ILINK}}", ilink)
     y, mth, d = cutoff.split("-")
     title = "Premier League, fiches équipes"
-    body = f"""<div class="wrap">
+    body_tpl = f"""<div class="wrap">
 <header class="lede">
   <div class="eyebrow">Premier League {esc(season_dir.name)} · après la journée {last_round}</div>
   <h1>Fiches équipes</h1>
   <p>Forces et faiblesses de chaque équipe sur la saison, comparées aux 19 autres, avec ses zones d'occupation
   et son comportement selon le score. Données arrêtées au {int(d)} {MOIS[int(mth) - 1]} {y}.</p>
 </header>
+{{{{ILINK}}}}
 <nav class="tindex" aria-label="Équipes">{index}</nav>
 <aside class="howto" aria-label="Comment lire">
   <strong>Comment lire</strong>
@@ -213,12 +248,12 @@ def build(pdf=False):
     <div><dt>Données</dt> <dd>pressing, contres, passes et zones défensives viennent de WhoScored ; il faut au moins 3 matchs couverts pour un rang.</dd></div>
   </dl>
 </aside>
-{sections}
+{{{{SECTIONS}}}}
 <footer>Données FotMob et WhoScored (Opta). Fiches générées automatiquement chaque semaine par Claude.</footer>
 </div>"""
 
     def page(for_print):
-        b = body.replace('<details class="team"', '<details open class="team"') if for_print else body
+        b = make_body(for_print)
         return f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
@@ -233,22 +268,25 @@ def build(pdf=False):
     if pdf:
         pdf_dir = ROOT / "reports" / season_dir.name
         pdf_dir.mkdir(parents=True, exist_ok=True)
-        make_pdf(page(True), outdir, pdf_dir / f"PL {season_dir.name} - Fiches equipes.pdf")
+        make_pdf(page(True), outdir, pdf_dir / f"PL {season_dir.name} - Fiches equipes.pdf", PRINT_EXTRA)
     return season_dir.name
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pdf", action="store_true")
-    ap.add_argument("--record-artifact", metavar="SLUG")
+    ap.add_argument("--record-artifact", nargs="+", metavar="SLUG [URL]")
     args = ap.parse_args()
     if args.record_artifact:
         files = sorted(f for f in DATA.glob("matches/*/*.json") if not f.name.endswith("_heatmap.json"))
         season = max(files, key=lambda f: f.name[:10]).parent.name
         p = ROOT / "reports" / season / "teams.json"
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({"artifact": args.record_artifact}, indent=1))
-        print("Artefact noté :", args.record_artifact)
+        data = {"artifact": args.record_artifact[0]}
+        if len(args.record_artifact) > 1:
+            data["url"] = args.record_artifact[1]
+        p.write_text(json.dumps(data, indent=1))
+        print("Artefact noté :", data)
         return
     build(args.pdf)
 

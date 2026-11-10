@@ -35,10 +35,17 @@ def record_report(season, rnd, match_ids):
     save(season, data)
 
 
-def record_artifact(season, rnd, slug):
+def record_artifact(season, rnd, slug, url=None):
     data = load(season)
-    data.setdefault(str(rnd), {})["artifact"] = slug
+    e = data.setdefault(str(rnd), {})
+    e["artifact"] = slug
+    if url:
+        e["url"] = url
     save(season, data)
+
+
+def artifact_url(season, rnd):
+    return load(season).get(str(rnd), {}).get("url")
 
 
 def pending(season, rounds_to_ids):

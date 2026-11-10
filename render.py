@@ -13,6 +13,8 @@ analysis.json :
 }
 """
 import argparse
+import os
+import re
 
 import manifest
 import shutil
@@ -25,6 +27,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
+FOR_PRINT = False  # vrai pendant la construction de la version PDF
+PRINT_URL = None   # adresse de la page interactive, citée dans le PDF
 PARIS = ZoneInfo("Europe/Paris")
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
@@ -223,24 +227,99 @@ details.more > .figs { margin-top: 12px; }
 .xgt td.num, .xgt th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
 .xgt th:first-child, .xgt td:first-child { text-align: right; width: 2em; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
-@media print {
-  .ivz, .tip, .ph { display: none !important; }
-  .print-only { display: block; width: 100%; height: auto; border-radius: 8px; }
-  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: var(--bg); }
-  .wrap { max-width: none; padding: 0 10px; }
-  .figs { grid-template-columns: 1fr 1fr; gap: 14px; }
-  .figs .wide { grid-column: 1 / -1; width: 70%; justify-self: center; }
-  figcaption, .legend { font-size: 11px; }
-  figure, .board, .bars, .story, .plist li { break-inside: avoid; }
-  .match { break-before: page; }
-  .top { display: none; }
-}
-@page { size: A4; margin: 10mm 8mm; background: #0f1311; }
 @media (max-width: 420px) {
   body { font-size: 16px; }
   .board .team { font-size: 18px; }
   .board .score { font-size: 38px; }
 }
+"""
+
+# PDF : pages au format d'un écran de téléphone (lu en pleine largeur sans zoomer), thème clair,
+# une colonne, chaque match sur une nouvelle page. Injecté par make_pdf().
+PRINT_CSS = """
+@page { size: 100mm 190mm; margin: 7mm 5.5mm 8mm; }
+:root { --bg: #ffffff; --surface: #f3f6f4; --card: #ffffff; --line: #d3dbd6; --text: #17201b; --muted: #56635c;
+        --home: #2a6fcb; --away: #c4501d; color-scheme: light;
+        --font-display: "Inter Display", Inter, "DejaVu Sans", sans-serif;
+        --font-body: Inter, "DejaVu Sans", sans-serif; }
+html, body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-size: 13px; line-height: 1.45; }
+.wrap { display: block; max-width: none; padding: 0; }
+.wrap > * { margin: 0 0 16px; }
+h1 { font-size: 34px; letter-spacing: 0; }
+h2 { font-size: 19px; }
+h3 { font-size: 16.5px; }
+h2, h3, h4, .figs-t, summary { break-after: avoid; }
+p { max-width: none; }
+.eyebrow { font-size: 11px; }
+.lede { gap: 8px; }
+a { color: var(--home); text-decoration: none; }
+.ivz, .tip, div.ph, .ph-tabs, .no-print { display: none !important; }
+.print-only { display: block; }
+figure img, img.print-only { display: block; width: auto; height: auto; max-width: 100%; max-height: 158mm;
+                             margin: 0 auto; border-radius: 5px; }
+figure, .board, .bar-row, .gks, .habits, .comp, tr, .plist li, .legend, .keys li, .scorers li, .subs li,
+.story p, .meta, .ilink, .toc li, .howto dl > div { break-inside: avoid; }
+figcaption, .legend { font-size: 11px; }
+.subs-l { font-size: 11px; }
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+/* sommaire */
+.toc h2 { margin-bottom: 6px; }
+.toc ol { list-style: none; margin: 0; padding: 0; }
+.toc li a { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line);
+            color: var(--text); }
+.toc li a b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.toc li.sep { margin-top: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.ilink { font-size: 12px; }
+/* tableaux */
+.results td { padding: 3px 3px; }
+.results .t-score { font-size: 17px; line-height: 1.05; }
+.results .t-xg { font-size: 10.5px; line-height: 1.25; }
+.chip { font-size: 10px; padding: 2px 6px; margin-top: 2px; }
+.xgt { font-size: 12px; }
+.xgt th { font-size: 10.5px; }
+.xgt th, .xgt td { padding: 4px 3px; }
+.tscroll { overflow: visible; }
+/* match */
+.match { display: block; background: none; border: 0; border-radius: 0; padding: 0; }
+.match > * + * { margin-top: 14px; }
+.board { gap: 6px; }
+.board .team { font-size: 16px; }
+.board .score { font-size: 32px; }
+.meta { font-size: 11.5px; }
+.scorers { font-size: 12px; gap: 8px; }
+.subs .scorers { font-size: 11.5px; }
+.story { gap: 8px; }
+.keys { padding-left: 16px; }
+.bars { gap: 7px; }
+.bar-row { font-size: 12.5px; grid-template-columns: 2.9em 1fr 2.9em; }
+.bar-label { font-size: 11px; margin-bottom: -4px; }
+.bar { height: 7px; }
+.gks, .habits, .howto { background: var(--surface); border-radius: 8px; padding: 10px 12px; }
+.gks ul, .hab, .plist li { font-size: 12.5px; }
+.gk-stats, .plist .pline { font-size: 11.5px; }
+.gks h4, .habits h4 { font-size: 15px; }
+.comp { font-size: 12.5px; }
+.tag { font-size: 10.5px; }
+.figs { display: block; }
+.figs > * + * { margin-top: 18px; }
+.figs-t { font-family: var(--font-display); font-size: 15px; text-transform: uppercase; margin: 6px 0 10px;
+          padding-top: 10px; border-top: 1px solid var(--line); }
+.more-p > .figs { margin-top: 0; }
+.squad { padding-top: 10px; }
+img.ph-p + img.ph-p { margin-top: 14px; }
+img.ph-p { break-inside: avoid; }
+figure.ph-fig { break-inside: auto; }
+.pgb { break-before: page; height: 0; }
+.squad summary { font-size: 13px; }
+.plist { gap: 7px; }
+.sst { font-size: 12px; }
+.howto { font-size: 12.5px; }
+.top { text-align: right; font-size: 12px; }
+footer { font-size: 11px; }
+.sr { position: static; width: auto; clip: auto; white-space: normal; font-size: 1px; line-height: 1px; height: 1px;
+      margin: 0; color: transparent; overflow: hidden; text-transform: none; }
 """
 
 
@@ -276,6 +355,11 @@ def verdict(m):
 
 
 def img(path):
+    path = Path(path)
+    if FOR_PRINT:  # même graphe en thème clair, s'il existe
+        alt = path.parent / "print" / path.name
+        if alt.exists():
+            path = alt
     data = base64.b64encode(path.read_bytes()).decode()
     return f"data:image/webp;base64,{data}"
 
@@ -711,10 +795,15 @@ def static_fig(m, name, outdir, cap=None, extra="", wide=False):
         return ""
     w = ' class="wide"' if wide else ""
     return (f'<figure{w}><img src="{img(outdir / figs[name])}" alt="{esc(FIG_ALT[name])} – {esc(m["home"])} '
-            f'contre {esc(m["away"])}" loading="lazy"><figcaption>{cap or FIG_CAP.get(name, "")}</figcaption>{extra}</figure>')
+            f'contre {esc(m["away"])}" loading="lazy"><figcaption>{pcap(cap or FIG_CAP.get(name, ""))}</figcaption>{extra}</figure>')
 
 
-FOR_PRINT = False
+def pcap(text):
+    """Légende : à l'écran telle quelle ; dans le PDF, sans les consignes tactiles et avec les couleurs du thème clair."""
+    if not FOR_PRINT:
+        return text
+    text = re.sub(r"\s*Touchez[^.]*\.", "", text)
+    return text.replace("en blanc,", "en noir,").replace("point blanc", "point noir")
 
 
 def dual_fig(m, name, outdir, svg_html, title, cap, extra=""):
@@ -723,7 +812,7 @@ def dual_fig(m, name, outdir, svg_html, title, cap, extra=""):
     pimg = (f'<img class="print-only" src="{img(outdir / figs[name])}" alt="{esc(FIG_ALT[name])}">'
             if FOR_PRINT and name in figs else "")
     return (f'<figure><div class="ivz"><div class="ivz-t">{title}</div>{svg_html}</div>{pimg}'
-            f'<figcaption>{cap}</figcaption>{extra}</figure>')
+            f'<figcaption>{pcap(cap)}</figcaption>{extra}</figure>')
 
 
 def numbers_legend(m, side):
@@ -746,6 +835,8 @@ def match_section(m, txt, outdir):
     sid = f"m{m['id']}"
     ko = paris(m["kickoff_utc"])
     parts = [f'<section class="match" id="{sid}" aria-labelledby="{sid}-t">']
+    if FOR_PRINT:  # titre invisible : entrée du match dans les signets du PDF
+        parts.append(f'<h2 class="sr">{esc(m["home_short"])} {m["score"][0]}–{m["score"][1]} {esc(m["away_short"])}</h2>')
     parts.append(
         f'<div class="board"><div class="team home" id="{sid}-t">{esc(m["home"])}</div>'
         f'<div class="score">{m["score"][0]}–{m["score"][1]}</div>'
@@ -754,6 +845,9 @@ def match_section(m, txt, outdir):
     parts.append(
         f'<div class="meta">{date_fr(ko).capitalize()}, {ko:%H:%M} · '
         f'{esc(m["formation"][0])} ({esc(coaches[0])}) contre {esc(m["formation"][1])} ({esc(coaches[1])})</div>')
+    if FOR_PRINT:  # navigation en tête de match (un lien seul en fin de match ferait une page presque vide)
+        web = f' · <a href="{esc(PRINT_URL)}">graphes interactifs (page web) ↗</a>' if PRINT_URL else ""
+        parts.append(f'<div class="ilink meta"><a href="#sommaire">↑ Sommaire</a>{web}</div>')
     gh = "".join(goal_line(g) for g in m["goals"] if g["side"] == "home")
     ga = "".join(goal_line(g) for g in m["goals"] if g["side"] == "away")
     if gh or ga:
@@ -822,11 +916,18 @@ def match_section(m, txt, outdir):
     if stc and m.get("phases"):
         for side in ("home", "away"):
             figs_ = m.get("figures", {})
-            pimg = (f'<img class="print-only" src="{img(outdir / figs_[f"phases_{side}"])}" alt="Placement par phase">'
-                    if FOR_PRINT and f"phases_{side}" in figs_ else "")
-            more.append(f'<figure>{phases_html(m, side, f"ph{m["id"]}{side[0]}")}{pimg}<figcaption>Le match découpé '
-                        f'aux changements de composition : dans chaque phase, seuls les joueurs sur le terrain sont placés '
-                        f'(cercles creux : entrés dans cette phase). Touchez une phase, un joueur ou un trait.</figcaption>'
+            pimg = ""
+            if FOR_PRINT and f"phases_{side}" in figs_:
+                singles = [outdir / "print" / f"{m['id']}_phase{k + 1}_{side}.webp" for k in range(len(m["phases"][side]))]
+                if all(x.exists() for x in singles):  # une image par phase, lisible en une colonne
+                    pimg = "".join(f'<img class="print-only ph-p" src="{img(x)}" alt="Placement, phase {k + 1}">'
+                                   for k, x in enumerate(singles))
+                else:
+                    pimg = f'<img class="print-only" src="{img(outdir / figs_[f"phases_{side}"])}" alt="Placement par phase">'
+
+            cap = pcap("Le match découpé aux changements de composition : dans chaque phase, seuls les joueurs sur "
+                       "le terrain sont placés (cercles creux : entrés dans cette phase). Touchez une phase, un joueur ou un trait.")
+            more.append(f'<figure class="ph-fig">{phases_html(m, side, f"ph{m["id"]}{side[0]}")}{pimg}<figcaption>{cap}</figcaption>'
                         f'{numbers_legend(m, side)}</figure>')
         more.append(score_states_html(m))
         for side in ("home", "away"):
@@ -853,11 +954,16 @@ def match_section(m, txt, outdir):
     more += [static_fig(m, "goalkeepers", outdir), static_fig(m, "heatmaps", outdir),
              static_fig(m, "player_home", outdir), static_fig(m, "player_away", outdir)]
     more = [x for x in more if x]
-    parts.append(f'<details class="more"><summary>Tous les graphes du match <span class="muted">({len(more)})</span></summary>'
-                 f'<div class="figs">{"".join(more)}</div></details>')
+    if FOR_PRINT:
+        parts.append(f'<div class="more-p"><h4 class="figs-t">Tous les graphes du match</h4>'
+                     f'<div class="figs">{"".join(more)}</div></div>')
+    else:
+        parts.append(f'<details class="more"><summary>Tous les graphes du match <span class="muted">({len(more)})</span></summary>'
+                     f'<div class="figs">{"".join(more)}</div></details>')
     for side in ("home", "away"):
         parts.append(squad_block(m, side))
-    parts.append('<div class="top"><a href="#resultats">Retour aux résultats ↑</a></div>')
+    if not FOR_PRINT:
+        parts.append('<div class="top"><a href="#resultats">Retour aux résultats ↑</a></div>')
     parts.append("</section>")
     return "\n".join(parts)
 
@@ -937,10 +1043,10 @@ def main():
     (outdir / "index.html").write_text(page)
     print(f"OK -> {outdir / 'index.html'} ({len(page) // 1024} Ko)")
     if args.pdf:
-        global FOR_PRINT
-        FOR_PRINT = True
+        global FOR_PRINT, PRINT_URL
+        FOR_PRINT, PRINT_URL = True, manifest.artifact_url(S["season"], S["round"])
         printable = build_page(S, A, outdir, ms, rows, intro, span, title)
-        FOR_PRINT = False
+        FOR_PRINT, PRINT_URL = False, None
         pdf_dir = ROOT / "reports" / S["season"]
         pdf_dir.mkdir(parents=True, exist_ok=True)
         make_pdf(printable, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
@@ -950,22 +1056,7 @@ def main():
             archived.write_text(json.dumps(A, ensure_ascii=False, indent=1))
 
 
-def build_page(S, A, outdir, ms, rows, intro, span, title):
-    body = f"""<div class="wrap">
-<header class="lede">
-  <div class="eyebrow">Premier League {esc(S['season'])} · {span}</div>
-  <h1>Journée {S['round']}</h1>
-  {intro}
-</header>
-<section id="resultats" aria-labelledby="res-t" style="display:grid;gap:12px">
-  <h2 id="res-t">Résultats</h2>
-  <table class="results"><tbody>{''.join(rows)}</tbody></table>
-  <p class="muted" style="font-size:14px">Touchez un score pour aller au match. « Contre le xG » : le résultat
-  va à l'inverse des occasions créées.</p>
-</section>
-{xg_table_html(S)}
-{team_of_round_html(S, outdir)}
-<aside class="howto" aria-label="Comment lire">
+HOWTO_WEB = """<aside class="howto" aria-label="Comment lire">
   <strong>Comment lire</strong>
   <dl>
     <div><dt>Couleurs</dt> <dd><span class="dot home"></span> domicile, <span class="dot away"></span> extérieur.</dd></div>
@@ -981,8 +1072,72 @@ def build_page(S, A, outdir, ms, rows, intro, span, title):
     <div><dt>Graphes interactifs</dt> <dd>touchez un tir, un joueur ou un trait pour voir le détail. « Tous les graphes du match » déplie le reste.</dd></div>
     <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>
   </dl>
-</aside>
+</aside>"""
+
+HOWTO_PRINT = """<aside class="howto" id="lexique" aria-label="Comment lire">
+  <h2>Comment lire</h2>
+  <dl>
+    <div><dt>Couleurs</dt> <dd><span class="dot home"></span> domicile, <span class="dot away"></span> extérieur.</dd></div>
+    <div><dt>xG (expected goals)</dt> <dd>probabilité qu'un tir finisse au fond, d'après des milliers de tirs similaires. La somme donne le nombre de buts « mérités ».</dd></div>
+    <div><dt>Grosse occasion</dt> <dd>situation où l'on attend un but (face au gardien, penalty, tir à bout portant).</dd></div>
+    <div><dt>Momentum</dt> <dd>danger créé minute par minute (modèle FotMob) : au-dessus, l'équipe à domicile pousse ; en dessous, l'extérieur.</dd></div>
+    <div><dt>Actions</dt> <dd>passes, duels, tirs, récupérations… chaque point de heatmap en est une.</dd></div>
+    <div><dt>PPDA</dt> <dd>nombre de passes que l'adversaire peut faire dans sa propre moitié (ses 60 % de terrain) avant une action défensive : autour de 8, pressing très intense ; au-delà de 18, bloc bas qui attend.</dd></div>
+    <div><dt>Avec / sans le ballon</dt> <dd>calculé à partir de chaque passe et chaque action défensive du match (données Opta via WhoScored).</dd></div>
+    <div><dt>Cercles creux</dt> <dd>joueurs entrés en jeu (dans le placement par phase : entrés pendant cette phase).</dd></div>
+    <div><dt>Phases</dt> <dd>le match découpé aux changements de composition qui comptent (plusieurs remplacements d'un coup, changement de système) ; chaque phase ne montre que les joueurs alors sur le terrain.</dd></div>
+    <div><dt>Habitudes</dt> <dd>écarts les plus nets entre ce match et la moyenne des matchs précédents de l'équipe (données arrêtées à cette journée).</dd></div>
+    <div><dt>Version interactive</dt> <dd>la page web de la journée (lien en tête de chaque match) permet de toucher un tir, un joueur ou un trait pour voir le détail, et de passer d'une phase de jeu à l'autre.</dd></div>
+    <div><dt>Centile</dt> <dd>classement sur la saison, stats ramenées à 90 minutes, par rapport aux joueurs du même poste : 90 = meilleur que 90 % d'entre eux. Les étiquettes « points forts » listent les centiles de 80 et plus.</dd></div>
+  </dl>
+</aside>"""
+
+
+def toc_html(S, ms):
+    """Sommaire cliquable du PDF."""
+    items = ['<li><a href="#resultats"><span>Résultats</span></a></li>']
+    if S.get("xg_table"):
+        items.append('<li><a href="#classement-xg"><span>Classement au xG</span></a></li>')
+    if S.get("team_of_round"):
+        items.append('<li><a href="#equipe-type"><span>Équipe type de la journée</span></a></li>')
+    items.append('<li class="sep">Les matchs</li>')
+    for m in ms:
+        items.append(f'<li><a href="#m{m["id"]}"><span>{esc(m["home_short"])} – {esc(m["away_short"])}</span>'
+                     f'<b>{m["score"][0]}–{m["score"][1]}</b></a></li>')
+    items.append('<li class="sep">Annexe</li><li><a href="#lexique"><span>Comment lire</span></a></li>')
+    return f'<nav class="toc" id="sommaire" aria-label="Sommaire"><h2>Sommaire</h2><ol>{"".join(items)}</ol></nav>'
+
+
+def build_page(S, A, outdir, ms, rows, intro, span, title):
+    howto = HOWTO_PRINT if FOR_PRINT else HOWTO_WEB
+    if FOR_PRINT:
+        ilink = (f'<p class="ilink"><a href="{esc(PRINT_URL)}">Version interactive de la journée (page web) ↗</a></p>'
+                 if PRINT_URL else "")
+        front, back = ilink + toc_html(S, ms), howto
+        res_note = "« Contre le xG » : le résultat va à l'inverse des occasions créées."
+    else:
+        front, back = howto, ""
+        res_note = ("Touchez un score pour aller au match. « Contre le xG » : le résultat va à l'inverse des "
+                    "occasions créées.")
+    body = f"""<div class="wrap">
+<header class="lede">
+  <div class="eyebrow">Premier League {esc(S['season'])} · {span}</div>
+  <h1>Journée {S['round']}</h1>
+  {intro}
+</header>
+{front if FOR_PRINT else ""}
+<section id="resultats" aria-labelledby="res-t" style="display:grid;gap:12px">
+  <h2 id="res-t">Résultats</h2>
+  {f'<p class="muted" style="font-size:12px">{res_note}</p>' if FOR_PRINT else ""}
+  <table class="results"><tbody>{''.join(rows)}</tbody></table>
+  {"" if FOR_PRINT else f'<p class="muted" style="font-size:14px">{res_note}</p>'}
+</section>
+{xg_table_html(S)}
+{team_of_round_html(S, outdir)}
+{"" if FOR_PRINT else front}
+
 {''.join(match_section(m, A.get('matches', {}).get(m['id']), outdir) for m in ms)}
+{back}
 <footer>Données FotMob et WhoScored (Opta), collectées automatiquement après chaque journée. Analyse et graphes générés par Claude.</footer>
 </div>"""
 
@@ -1005,7 +1160,12 @@ def build_page(S, A, outdir, ms, rows, intro, span, title):
     return page
 
 
-def make_pdf(page, outdir, pdf):
+PAGE_STARTS = ('<nav class="toc"', '<section id="resultats"', '<section id="classement-xg"',
+               '<section id="equipe-type"', '<aside class="howto"', '<section class="match"',
+               '<details class="team"', '<section id="affiches"')
+
+
+def make_pdf(page, outdir, pdf, extra_css=""):
     chrome = next((c for c in ("google-chrome", "chromium", "chromium-browser") if shutil.which(c)), None)
     if not chrome:
         print("PDF ignoré : Chrome introuvable")
@@ -1022,12 +1182,22 @@ def make_pdf(page, outdir, pdf):
         return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
     printable = _re.sub(r"data:image/webp;base64,([A-Za-z0-9+/=]+)", to_jpeg, page)
+    printable = _re.sub(r'<link [^>]*fonts\.(googleapis|gstatic)\.com[^>]*>', "", printable)  # polices locales
+    printable = printable.replace("</head>", f"<style>{PRINT_CSS}{extra_css}</style></head>", 1)
+    # signets : les étiquettes ARIA des sections doublent les titres dans le plan du PDF
+    printable = _re.sub(r'(<(?:section|nav|aside)\b[^>]*?)\s+aria-(?:labelledby|label)="[^"]*"', r"\1", printable)
+    # sauts de page : un élément vide devant chaque bloc qui commence une page (un break-before
+    # posé sur la section elle-même fait doubler son titre dans les signets du PDF)
+    for start in PAGE_STARTS:
+        printable = printable.replace(start, '<div class="pgb"></div>' + start)
     tmp = outdir / "_print.html"
     tmp.write_text(printable.replace('<details class="', '<details open class="'))
     subprocess.run([chrome, "--headless=new", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
+                    "--generate-pdf-document-outline",  # signets PDF à partir des titres
                     "--virtual-time-budget=5000", f"--print-to-pdf={pdf}", tmp.as_uri()],
                    check=True, capture_output=True, timeout=180)
-    tmp.unlink()
+    if not os.environ.get("PLSTATS_KEEP_PRINT"):
+        tmp.unlink()
     print(f"OK -> {pdf} ({pdf.stat().st_size // 1024} Ko)")
 
 

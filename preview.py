@@ -5,7 +5,7 @@ forme, style, joueurs à suivre. Données arrêtées au dernier match joué.
 Usage :
   python preview.py --due            # journée à préparer (premier match dans < 96 h, pas d'aperçu récent), ou AUCUNE
   python preview.py --round 11 [--pdf]
-  python preview.py --record-artifact 11 <slug>
+  python preview.py --record-artifact 11 <slug> [<url claude.ai/artifact/…>]
   Test sur une journée passée : python preview.py --round 10 --until 2026-11-05
 Sorties : out/P<n>/summary.json, out/P<n>/index.html, reports/<saison>/PL <saison> - Apercu journee NN.pdf
 Texte optionnel (rédigé par Claude) : out/P<n>/analysis.json
@@ -181,6 +181,20 @@ EXTRA_CSS = """
 .fx td { padding: 8px 4px; border-top: 1px solid var(--line); font-size: 15px; }
 .fx { width: 100%; border-collapse: collapse; }
 .fx .when { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+"""
+
+# PDF (thème clair, format téléphone) : compléments à render.PRINT_CSS
+PRINT_EXTRA = """
+.two { display: block; }
+.two > * + * { margin-top: 12px; }
+.keysm li, .kp { font-size: 12.5px; }
+.kp .muted { font-size: 11.5px; }
+.fx td { font-size: 12.5px; padding: 5px 3px; }
+.fm { width: 20px; height: 20px; font-size: 11px; }
+.fm-V { background: #d5eedd; } .fm-N { background: #e4e8e6; } .fm-D { background: #f6d8d8; }
+.proj .pd { background: #8a948f; }
+.keysm li, .kp li, .proj { break-inside: avoid; }
 """
 
 
@@ -195,6 +209,7 @@ def match_card(x, txt):
     h, a = x["home"], x["away"]
     th, ta = x["table"]["home"], x["table"]["away"]
     parts = [f'<section class="match" id="f{x["id"]}">',
+             f'<h2 class="sr">{esc(short(h))} – {esc(short(a))}</h2>',
              f'<div class="board"><div class="team home">{esc(h)}</div><div class="score" style="font-size:28px">–</div>'
              f'<div class="team away">{esc(a)}</div></div>',
              f'<div class="meta">{JOURS[ko.weekday()].capitalize()} {ko.day} {MOIS[ko.month - 1]}, {ko:%H:%M}'
@@ -323,7 +338,11 @@ def build(rnd, until=None, pdf=False, test=False):
     if pdf and not test:
         pdf_dir = ROOT / "reports" / season
         pdf_dir.mkdir(parents=True, exist_ok=True)
-        make_pdf(page, outdir, pdf_dir / f"PL {season} - Apercu journee {int(rnd):02d}.pdf")
+        url = load_registry(season).get(str(rnd), {}).get("url")
+        ilink = f'<p class="ilink"><a href="{esc(url)}">Version interactive (page web) ↗</a></p>' if url else ""
+        printable = page.replace("</header>", "</header>" + ilink, 1).replace(
+            '<div class="top"><a href="#affiches">Retour aux affiches ↑</a></div>', "")
+        make_pdf(printable, outdir, pdf_dir / f"PL {season} - Apercu journee {int(rnd):02d}.pdf", PRINT_EXTRA)
         if A:
             archived.parent.mkdir(parents=True, exist_ok=True)
             archived.write_text(json.dumps(A, ensure_ascii=False, indent=1))
@@ -339,7 +358,7 @@ def main():
     ap.add_argument("--until", help="AAAA-MM-JJ (tests)")
     ap.add_argument("--test", action="store_true", help="affiches reconstruites depuis les matchs joués (journée passée)")
     ap.add_argument("--pdf", action="store_true")
-    ap.add_argument("--record-artifact", nargs=2, metavar=("JOURNEE", "SLUG"))
+    ap.add_argument("--record-artifact", nargs="+", metavar="JOURNEE SLUG [URL]")
     args = ap.parse_args()
     files = sorted(f for f in DATA.glob("matches/*/*.json") if not f.name.endswith("_heatmap.json"))
     season = max(files, key=lambda f: f.name[:10]).parent.name
@@ -349,7 +368,12 @@ def main():
         return
     if args.record_artifact:
         reg = load_registry(season)
-        reg.setdefault(str(args.record_artifact[0]), {})["artifact"] = args.record_artifact[1]
+        if len(args.record_artifact) not in (2, 3):
+            raise SystemExit("--record-artifact JOURNEE SLUG [URL]")
+        e = reg.setdefault(str(args.record_artifact[0]), {})
+        e["artifact"] = args.record_artifact[1]
+        if len(args.record_artifact) == 3:
+            e["url"] = args.record_artifact[2]
         save_registry(season, reg)
         print("Artefact noté")
         return
