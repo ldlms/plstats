@@ -906,8 +906,11 @@ def main():
     outdir = ROOT / args.out / f"J{args.round}"
     S = json.loads((outdir / "summary.json").read_text())
     A = {}
+    archived = ROOT / "reports" / S["season"] / "analysis" / f"J{args.round:02d}.json"
     if (outdir / "analysis.json").exists():
         A = json.loads((outdir / "analysis.json").read_text())
+    elif archived.exists():  # texte déjà rédigé : on peut régénérer la page sans le réécrire
+        A = json.loads(archived.read_text())
     ms = S["matches"]
 
     days = sorted(paris(m["kickoff_utc"]) for m in ms)
@@ -942,6 +945,9 @@ def main():
         pdf_dir.mkdir(parents=True, exist_ok=True)
         make_pdf(printable, outdir, pdf_dir / f"PL {S['season']} - Journee {S['round']:02d}.pdf")
         manifest.record_report(S["season"], S["round"], [m["id"] for m in ms])
+        if A:
+            archived.parent.mkdir(parents=True, exist_ok=True)
+            archived.write_text(json.dumps(A, ensure_ascii=False, indent=1))
 
 
 def build_page(S, A, outdir, ms, rows, intro, span, title):

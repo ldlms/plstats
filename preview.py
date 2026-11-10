@@ -281,7 +281,9 @@ def build(rnd, until=None, pdf=False, test=False):
     outdir.mkdir(parents=True, exist_ok=True)
     summary = {"round": int(rnd), "season": season, "data_until": until, "fixtures": out}
     (outdir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1, default=str))
-    A = json.loads((outdir / "analysis.json").read_text()) if (outdir / "analysis.json").exists() else {}
+    archived = ROOT / "reports" / season / "analysis" / f"P{int(rnd):02d}.json"
+    A = json.loads((outdir / "analysis.json").read_text()) if (outdir / "analysis.json").exists() else \
+        (json.loads(archived.read_text()) if archived.exists() else {})
 
     rows = []
     for x in out:
@@ -322,6 +324,9 @@ def build(rnd, until=None, pdf=False, test=False):
         pdf_dir = ROOT / "reports" / season
         pdf_dir.mkdir(parents=True, exist_ok=True)
         make_pdf(page, outdir, pdf_dir / f"PL {season} - Apercu journee {int(rnd):02d}.pdf")
+        if A:
+            archived.parent.mkdir(parents=True, exist_ok=True)
+            archived.write_text(json.dumps(A, ensure_ascii=False, indent=1))
         reg = load_registry(season)
         reg.setdefault(str(rnd), {})["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         save_registry(season, reg)

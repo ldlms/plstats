@@ -1,0 +1,139 @@
+{
+ "intro": [
+  "30 buts en 10 matchs, dont 6 penalties (tous transformés). Le fil rouge de la journée : avoir le ballon n'a pas suffi. Tottenham (62 %), Manchester City (78 %) et Chelsea (69 %) ont tous perdu contre des équipes qui leur ont laissé la possession.",
+  "Au regard des occasions, une seule vraie surprise : Nottingham Forest bat Manchester City 3-1 avec 22 % du ballon, alors que City a créé davantage (1,76 xG contre 1,06). Le match fou de la journée est le 4-4 entre Manchester United et Aston Villa, et United méritait au moins ce point.",
+  "Au classement au xG après 10 journées, Arsenal est en tête des deux classements (27 points pour 20,3 points « mérités »). Les plus malchanceux sont Nottingham Forest, 16e avec 9 points mais 5e d'après ses occasions (16,4), et Sunderland, 19e avec 8 points mais 7e d'après ses occasions (14,8)."
+ ],
+ "matches": {
+  "5795508": {
+   "headline": "Thierno Barry renverse Coventry en dix minutes",
+   "paragraphs": [
+    "Coventry a eu la meilleure première période (8 tirs contre 3, 0,58 xG contre 0,21) et a ouvert le score par Yann Gboho à la 52e. Everton a répondu tout de suite : Thierno Barry égalise quatre minutes plus tard sur un service de Vitaliy Mykolenko, double la mise à la 61e, puis offre le troisième but à Kiernan Dewsbury-Hall (81e).",
+    "Sur l'ensemble du match, les occasions sont proches (1,43 xG contre 1,21). La différence s'est faite à la finition : les tirs cadrés d'Everton valaient 2,09 xGOT contre 0,74 pour Coventry. Everton a surtout attaqué par la gauche (45 % de ses attaques), Coventry par la droite (47 %).",
+    "Avec et sans ballon : Coventry a pressé plus haut et plus fort (PPDA 11,0 contre 18,5, et 20 ballons récupérés dans le camp adverse contre 10), ce qui explique sa bonne première période. Everton a attendu plus bas, avec des actions défensives à 35 m de son but en moyenne."
+   ],
+   "keys": [
+    "Thierno Barry : 2 buts, 1 passe décisive, note 9,4.",
+    "Everton passe de 3 tirs en première période à 12 après la pause.",
+    "Un score plus large que le jeu : seulement 0,22 xG d'écart."
+   ]
+  },
+  "5795511": {
+   "headline": "Leeds domine sans le ballon, Trafford garde le zéro",
+   "paragraphs": [
+    "Tottenham a eu le ballon (62 %), mais Leeds a eu les occasions : 16 tirs contre 7, 1,96 xG contre 0,72. Presque tout est arrivé après la pause (13 tirs, 1,81 xG), et surtout sur coups de pied arrêtés (1,27 xG). Le but est venu d'une action individuelle de Noah Okafor à la 79e (0,53 xG).",
+    "Les rares tirs cadrés de Tottenham étaient pourtant dangereux (1,42 xGOT, plus que Leeds) : James Trafford a tout arrêté et finit meilleur joueur du match. Leeds a aussi gagné le combat physique, avec 65 duels gagnés contre 43.",
+    "Avec et sans ballon : Leeds a pressé haut, avec 25 ballons récupérés dans le camp adverse (9 pour Tottenham). Tottenham a surtout construit par la gauche, entre Andy Robertson et Micky van de Ven (26 passes)."
+   ],
+   "keys": [
+    "Coups de pied arrêtés : 1,27 xG pour Leeds, 0,09 pour Tottenham.",
+    "James Trafford : 4 arrêts, note 8,8.",
+    "Sandro Tonali, moins bien noté du match (5,4)."
+   ]
+  },
+  "5795505": {
+   "headline": "Arsenal a dû attendre la 72e minute face au mur de Hull",
+   "paragraphs": [
+    "Arsenal a eu 67 % du ballon et 71 % des actions dans le dernier tiers face à un Hull regroupé en 5-3-2 : en moyenne, les joueurs de champ de Hull se sont tenus à 48 m de leur but, contre 58 m pour Arsenal. 21 tirs dont 10 cadrés : le gardien Konstantinos Tzolakis a multiplié les parades (9 arrêts) jusqu'au but de Martin Ødegaard à la 72e.",
+    "Après la pause, Hull n'a presque plus existé en attaque : 1 tir pour 0,04 xG. Arsenal a surtout attaqué par la droite (45 % des attaques), où Noni Madueke a créé 4 occasions.",
+    "Avec et sans ballon : Hull a défendu très bas, avec des actions défensives à 32 m de son but en moyenne et un PPDA de 21,0. Arsenal a fait circuler le ballon surtout entre Martin Ødegaard et Bruno Guimarães (33 passes)."
+   ],
+   "keys": [
+    "Martin Ødegaard : le but et 5 occasions créées, note 8,5.",
+    "Konstantinos Tzolakis : 9 arrêts, note 8,0 malgré la défaite.",
+    "Victoire logique mais courte : 1,26 xG contre 0,36."
+   ]
+  },
+  "5795509": {
+   "headline": "Murphy marque de nulle part, Muniz répond trois minutes plus tard",
+   "paragraphs": [
+    "Fulham a eu le ballon (58 %) et a davantage pesé dans le dernier tiers (63 % des actions), mais sans se créer une seule grosse occasion. Newcastle, plus bas sur le terrain, a eu les meilleures situations : 3 grosses occasions, toutes manquées, pour 1,14 xG au total.",
+    "Tout s'est joué en fin de match. Jacob Murphy ouvre le score à la 80e sur un tir qui n'avait que 2 % de chances d'entrer (0,02 xG), puis Rodrigo Muniz égalise à la 83e. Le nul correspond à peu près au jeu.",
+    "Avec et sans ballon : Fulham a récupéré le ballon plus haut (23 récupérations dans le camp adverse contre 14), mais sa circulation est surtout passée par l'arrière, autour de David Affengruber (23 passes avec Timothy Castagne, 22 avec Calvin Bassey)."
+   ],
+   "keys": [
+    "Newcastle : 3 grosses occasions, 3 ratées.",
+    "Fulham : 0 grosse occasion malgré 28 touches dans la surface.",
+    "Antonee Robinson, moins bien noté du match (5,8)."
+   ]
+  },
+  "5795513": {
+   "headline": "Forest punit City en contre : 22 % de possession, 3 buts",
+   "paragraphs": [
+    "Manchester City a monopolisé le ballon (78 %, 679 passes réussies contre 137) et s'est installé dans le camp adverse : 72 % des actions dans le dernier tiers, et le momentum de son côté sans interruption de la 30e à la fin. Mais ses 3 grosses occasions sont toutes manquées, et ses tirs cadrés ne valaient que 0,80 xGOT.",
+    "Forest a défendu très bas (sa ligne défensive à 32 m de son but en moyenne, contre 47 m pour City) et a frappé vite : Jair Cunha à la 6e, puis deux contres conclus par Liam Delap (18e et 73e). Avec 1,06 xG, Forest marque trois fois : c'est la vraie surprise de la journée au regard des occasions.",
+    "Avec et sans ballon : Forest a laissé City construire (PPDA 19,9) et a défendu regroupé. Avec le ballon, il a joué vite et direct : 65 % de passes réussies dans le jeu, contre 87 % pour City, dont la combinaison la plus fréquente est restée entre ses défenseurs Rúben Dias et Abdukodir Khusanov (46 passes)."
+   ],
+   "keys": [
+    "Liam Delap : 2 buts en contre-attaque, note 8,8.",
+    "City : 1,76 xG pour un seul but (Rayan Cherki, 52e).",
+    "Joško Gvardiol, moins bien noté du match (5,05)."
+   ]
+  },
+  "5795506": {
+   "headline": "Brighton étouffe un Brentford réduit à dix",
+   "paragraphs": [
+    "Brighton menait déjà grâce à une frappe de Diego Gómez (15e, un tir à 0,03 xG) quand Igor Thiago a été exclu à la 23e. À partir de là, le match s'est joué dans une moitié de terrain : 86 % des actions dans le dernier tiers pour Brighton, dont la ligne défensive s'est installée à 53 m de son but en moyenne. Pascal Groß a doublé la mise sur penalty juste avant la pause.",
+    "Brentford n'a pas cadré un seul tir (5 tentatives, 0,59 xG). Brighton a tiré 20 fois, mais hors penalty ses occasions sont restées modestes (1,32 xG), ce qui explique que le score en soit resté à 2-0.",
+    "Avec et sans ballon : le pressing de Brighton est le plus intense de la journée (PPDA 7,4, actions défensives à 48 m de son but en moyenne). Brentford, à dix, a reculé jusqu'à 28 m."
+   ],
+   "keys": [
+    "Pascal Groß : un but, 5 occasions créées, note 8,8.",
+    "Brentford : 0 tir cadré.",
+    "75 % de possession pour Brighton."
+   ]
+  },
+  "5795507": {
+   "headline": "Autant d'occasions des deux côtés, mais Liverpool a été plus efficace",
+   "paragraphs": [
+    "Les deux équipes ont produit autant (2,60 xG contre 2,65, 19 tirs contre 20). La différence est venue de la finition et des gardiens : Palace a manqué 4 de ses 5 grosses occasions, et Alisson a fait 6 arrêts. Liverpool a ouvert le score sur coup de pied arrêté (Mac Allister, 40e), un secteur où il a créé 1,54 xG.",
+    "Florian Wirtz a fait la différence en seconde période : il marque à la 54e, puis lance le contre conclu par Alexander Isak à la 89e. Palace a eu sa meilleure période entre la 60e et la 75e, mais n'a réduit l'écart que sur penalty, dans le temps additionnel. Palace a attaqué presque uniquement par la gauche (48 % des attaques, contre 19 % par la droite).",
+    "Avec et sans ballon : Liverpool a pressé plus fort (PPDA 10,8 contre 14,9) et a récupéré 20 ballons dans le camp adverse, contre 9 pour Palace."
+   ],
+   "keys": [
+    "Florian Wirtz : un but, une passe décisive, note 8,8.",
+    "Dominik Szoboszlai : 6 occasions créées.",
+    "Yéremi Pino : 0,62 xG sans marquer."
+   ]
+  },
+  "5795510": {
+   "headline": "Bournemouth a fait la différence en première période",
+   "paragraphs": [
+    "Evanilson a ouvert le score dès la 5e minute, et Bournemouth a dominé la première période en occasions (1,31 xG contre 0,12). Le deuxième but est arrivé juste après la pause, sur un contre-son-camp de Leif Davis (46e).",
+    "Ipswich a eu le ballon (56 %) et a gagné plus de duels (76 contre 54), mais sans danger dans le jeu. Jack Clarke, entré en jeu, a réduit l'écart sur penalty (73e), sans que ça suffise. Hors penalty, Bournemouth a créé près de cinq fois plus qu'Ipswich (2,23 xG contre 0,47).",
+    "Avec et sans ballon : Bournemouth a pressé plus haut, avec 21 ballons récupérés dans le camp adverse contre 9 pour Ipswich."
+   ],
+   "keys": [
+    "Evanilson : un but, 0,85 xG, note 8,2.",
+    "Ipswich : 0,47 xG hors penalty.",
+    "Bournemouth : 4 grosses occasions, 3 ratées."
+   ]
+  },
+  "5795514": {
+   "headline": "Sunderland frappe avant la pause et tient face au siège de Chelsea",
+   "paragraphs": [
+    "Sunderland a fait son match en première période : 1,78 xG contre 0,32, et le penalty d'Enzo Le Fée à la 36e. Avec 4 grosses occasions sur l'ensemble du match (dont 3 manquées), le score aurait pu être plus large.",
+    "Chelsea a eu 69 % du ballon et a poussé toute la dernière demi-heure (le momentum est de son côté de la 60e à la fin), mais sans vraie occasion : 0,34 xG en seconde période, et des tirs cadrés qui ne valaient que 0,24 xGOT sur tout le match. Le gardien Robin Roefs a fait les 4 arrêts nécessaires.",
+    "Avec et sans ballon : Sunderland a laissé le ballon à Chelsea et a défendu bas (PPDA 18,5). Chelsea a beaucoup fait tourner derrière : sa combinaison la plus fréquente est Wesley Fofana–Roméo Lavia (37 passes)."
+   ],
+   "keys": [
+    "Enzo Le Fée : le penalty de la victoire, note 8,3.",
+    "Chelsea : 69 % de possession pour 0,66 xG.",
+    "Sunderland : 3 grosses occasions ratées sur 4."
+   ]
+  },
+  "5795512": {
+   "headline": "Le match fou de la journée : United revient de 2-4 dans le temps additionnel",
+   "paragraphs": [
+    "Aston Villa menait 2-0 après quatre minutes (Edward, puis Jackson sur coup de pied arrêté). Bruno Fernandes sur penalty et Youri Tielemans ont ramené United à 2-2 avant la pause, mais Villa a repris deux buts d'avance juste après (McGinn sur penalty à la 48e, Goretzka sur coup de pied arrêté à la 53e). United a égalisé dans le temps additionnel : Joshua Zirkzee (90+2) puis Patrick Dorgu sur corner (90+6).",
+    "Les chiffres disent qu'United méritait au moins ce point : 26 tirs contre 12, 3,55 xG contre 2,88, 48 touches dans la surface adverse contre 18. Dans le jeu, Villa n'a presque rien créé (0,38 xG) : son danger est venu des coups de pied arrêtés (1,71 xG) et d'un penalty, et il a ensuite défendu très bas (36 dégagements).",
+    "Avec et sans ballon : Villa a défendu avec le bloc le plus bas de la journée, à égalité avec Brentford (actions défensives à 28 m de son but en moyenne), pendant qu'United pressait haut (24 ballons récupérés dans le camp adverse)."
+   ],
+   "keys": [
+    "Bruno Fernandes : un but, une passe décisive, 4 occasions créées, note 8,7.",
+    "Patrick Dorgu : un but et une passe décisive en 24 minutes.",
+    "Senne Lammens, gardien d'United, moins bien noté du match (5,3)."
+   ]
+  }
+ }
+}

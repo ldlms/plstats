@@ -1,0 +1,48 @@
+{
+  "intro": [
+    "L'affiche de la journée oppose Liverpool à Manchester United dimanche : l'équipe qui récupère le plus de ballons dans le camp adverse face à celle qui tire le plus en contre-attaque. Arsenal, leader avec cinq victoires de suite et la défense qui concède le moins d'occasions, se déplace à Newcastle.",
+    "Le match le plus serré selon les occasions est Aston Villa–Sunderland (38 % de chances de victoire de chaque côté), le plus déséquilibré Newcastle–Arsenal (50 % pour Arsenal, 25 % pour Newcastle). À suivre aussi : Manchester City, meilleure attaque de la ligue en grosses occasions, doit arrêter une série de trois défaites contre Fulham."
+  ],
+  "matches": {
+    "5795522": {
+      "headline": "City, 1er en grosses occasions, doit stopper une série de trois défaites",
+      "paragraph": "City est 1er de la ligue en xG créés, en grosses occasions et en qualité de tirs, mais reste sur trois défaites. Fulham, 15e, sort de deux nuls et pèche à la finition (18e en efficacité). La projection donne City favori (50 %), avec 1,8 xG attendu contre 1,3."
+    },
+    "5795515": {
+      "headline": "Deux équipes que leurs occasions placent bien plus haut",
+      "paragraph": "Bournemouth (7e, mais 3e d'après ses occasions) reste sur quatre victoires et presse haut : 2e en ballons récupérés dans le camp adverse et en contre-attaques. En face, Forest est 1er en tirs concédés et en contres subis, mais 19e en efficacité, d'où sa 16e place alors qu'il est 5e aux points « mérités »."
+    },
+    "5795516": {
+      "headline": "Le match le plus équilibré de la journée selon les occasions",
+      "paragraph": "La projection ne départage pas les deux équipes (38 % chacune, 1,6 xG attendu de part et d'autre). Villa, invaincu en cinq matchs, presse le moins de toute la ligue (20e) et concède beaucoup de grosses occasions (19e). Sunderland crée assez pour être 7e aux points « mérités », mais c'est l'équipe la moins efficace devant le but (20e)."
+    },
+    "5795518": {
+      "headline": "Les coups de pied arrêtés de Leeds face à une faiblesse de Chelsea",
+      "paragraph": "Leeds est 1er de la ligue en xG sur coups de pied arrêtés, et Chelsea 16e pour ceux qu'il concède : c'est la clé la plus nette du match. Chelsea doit beaucoup à son efficacité (2e) : 5e avec 16 points, il n'est que 12e d'après ses occasions. Leeds est aussi 1er en buts évités par le gardien, avec James Trafford, son joueur le mieux noté."
+    },
+    "5795519": {
+      "headline": "La défense la plus perméable face à l'une des attaques les plus discrètes",
+      "paragraph": "Crystal Palace, dernier, est 20e en xG, en grosses occasions et en tirs concédés, et reste sur quatre défaites. Coventry crée pourtant peu (19e en xG créés, 20e en grosses occasions). La projection penche pour Coventry (45 %), qui attaque surtout par la gauche, le côté par lequel Palace se fait le plus attaquer."
+    },
+    "5795524": {
+      "headline": "Tottenham a le ballon, Ipswich mise sur ses contres",
+      "paragraph": "Tottenham a le ballon (63 % en moyenne) et presse fort (3e), mais ses tirs sont de faible qualité (20e en xG par tir). Ipswich fait l'inverse : peu d'occasions (15e en xG créés) mais de bonne qualité (2e), souvent en contre (3e), un secteur où Tottenham est fragile (16e en contres subis)."
+    },
+    "5795523": {
+      "headline": "Le leader et la défense la plus fermée de la ligue à Newcastle",
+      "paragraph": "Arsenal, leader avec cinq victoires de suite, concède le moins d'occasions de la ligue (1er en xG et en grosses occasions concédés). Newcastle, 18e en xG créés et 19e sur coups de pied arrêtés, aura du mal à le percer ; son atout est son gardien (3e en buts évités). Arsenal est favori d'après les occasions (50 % contre 25 %)."
+    },
+    "5795520": {
+      "headline": "Le pressing n°1 face à l'équipe qui a le moins le ballon",
+      "paragraph": "Brighton presse plus que tout le monde (PPDA 8,0, 1er) et Hull est l'équipe qui a le moins le ballon (34 % de possession en moyenne). Hull est dernier en xG créés et en passes dans la surface, mais très efficace quand il tire (3e). Brighton est favori (46 %) ; son point faible est le nombre d'occasions qu'il concède sur coups de pied arrêtés (19e)."
+    },
+    "5795521": {
+      "headline": "L'affiche : le pressing de Liverpool contre les contres de United",
+      "paragraph": "Liverpool récupère le plus de ballons dans le camp adverse (1er) et presse fort (2e). United, sans victoire lors de ses cinq derniers matchs, est pourtant 1er en contre-attaques et en passes menant à un tir, mais ses tirs sont de faible qualité (19e). Les coups de pied arrêtés penchent vers Liverpool : 4e pour en créer, alors qu'United est 18e pour en concéder."
+    },
+    "5795517": {
+      "headline": "Coups de pied arrêtés contre contres pour clore la journée",
+      "paragraph": "Brentford est solide sur coups de pied arrêtés dans les deux sens (3e pour en créer, 4e pour en concéder), mais fragile en transition (17e en contres subis). Everton, 4e en grosses occasions et 6e en contre-attaques, peut en profiter, même s'il presse peu (18e)."
+    }
+  }
+}
