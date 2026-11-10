@@ -9,7 +9,7 @@ ouvre sa page avec un vrai navigateur (Playwright) et enregistre une version all
 Usage : python collect_ws.py            # tous les matchs de la saison sans données (30 max par passage)
         python collect_ws.py --days 10 --max 12
 Les matchs anciens qui ne sont plus listés sur la page Premier League sont cherchés sur
-les pages calendrier des équipes. Un match introuvable 3 fois de suite est abandonné
+les pages calendrier des équipes. Un match introuvable 5 fois (recherche réellement effectuée) est abandonné
 (data/whoscored/<saison>/_missing.json). Rythme volontairement lent.
 """
 import argparse
@@ -82,7 +82,7 @@ def fotmob_todo(days):
         if (since and ko < since) or datetime.now(timezone.utc) - ko < timedelta(hours=3):
             continue
         out = DATA / "whoscored" / f.parent.name / f"{g['matchId']}_ws.json"
-        if out.exists() or load_missing(f.parent.name).get(str(g["matchId"]), 0) >= 3:
+        if out.exists() or load_missing(f.parent.name).get(str(g["matchId"]), 0) >= 5:
             continue
         todo.append({"fotmob_id": str(g["matchId"]), "home": g["homeTeam"]["name"],
                      "away": g["awayTeam"]["name"], "kickoff": ko, "out": out, "season": f.parent.name})
@@ -189,6 +189,7 @@ def main():
         for tid, tslug in TEAM_LINK.findall(html):
             teams.setdefault(tid, tslug)
         unmatched = [m for m in todo[:args.max] if not find(m, links)]
+        pages_ok = 0
         if unmatched and teams:
             log(f"{len(unmatched)} match(s) non listés : recherche sur {len(teams)} pages d'équipe")
             for tid, tslug in teams.items():
@@ -199,11 +200,17 @@ def main():
                               wait_until="domcontentloaded", timeout=60000)
                     if wait_challenge(page):
                         page.wait_for_timeout(2500)
+                        before = len(links)
                         collect_links(page.content(), links)
+                        pages_ok += 1
+                        log(f"Page équipe {tslug} : +{len(links) - before} lien(s)")
+                    else:
+                        log(f"Page équipe {tslug} : bloquée ({page.title()[:40]!r})")
                 except Exception as e:
                     log(f"Page équipe {tid} : {e!r}"[:160])
-                time.sleep(random.uniform(3, 6))
-            log(f"{len(links)} match(s) connus après les pages d'équipe")
+                time.sleep(random.uniform(4, 8))
+            log(f"{len(links)} match(s) connus après les pages d'équipe ({pages_ok} page(s) lue(s))")
+        search_ok = pages_ok >= 5 or not unmatched
 
         done = 0
         for m in todo:
@@ -212,6 +219,8 @@ def main():
             ws_id = find(m, links)
             if not ws_id:
                 log(f"Introuvable sur WhoScored : {m['home']} - {m['away']}")
+                if not search_ok:
+                    continue  # recherche bloquée : on ne compte pas l'échec
                 miss = load_missing(m["season"])
                 miss[m["fotmob_id"]] = miss.get(m["fotmob_id"], 0) + 1
                 missing_path(m["season"]).parent.mkdir(parents=True, exist_ok=True)

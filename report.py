@@ -867,7 +867,7 @@ def main():
             ws_dir = DATA / "whoscored" / season_name
             miss_f = ws_dir / "_missing.json"
             miss = json.loads(miss_f.read_text()) if miss_f.exists() else {}
-            todo = [r for r in todo if all((ws_dir / f"{i}_ws.json").exists() or miss.get(i, 0) >= 3
+            todo = [r for r in todo if all((ws_dir / f"{i}_ws.json").exists() or miss.get(i, 0) >= 5
                                            for i in rounds[str(r)])]
         if args.limit:
             todo = todo[:args.limit]
