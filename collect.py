@@ -100,6 +100,27 @@ def download_heatmap(url, dest_stem):
     return None
 
 
+def save_fixtures(matches):
+    """Calendrier complet de la saison (matchs joués et à venir) : data/fixtures/<saison>.json"""
+    fx = []
+    for m in matches:
+        st = m.get("status", {})
+        if not st.get("utcTime"):
+            continue
+        fx.append({"id": str(m["id"]), "round": m.get("round"), "utc": st["utcTime"],
+                   "home": m["home"]["name"], "away": m["away"]["name"],
+                   "finished": bool(st.get("finished")), "cancelled": bool(st.get("cancelled")),
+                   "score": st.get("scoreStr")})
+    if not fx:
+        return
+    fx.sort(key=lambda x: x["utc"])
+    season = season_label(parse_utc(fx[len(fx) // 2]["utc"]))
+    out = DATA / "fixtures" / f"{season}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(fx, ensure_ascii=False, indent=0))
+    log(f"Calendrier : {len(fx)} matchs ({sum(not x['finished'] for x in fx)} à venir)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=10)
@@ -112,6 +133,7 @@ def main():
         sys.exit(1)
     matches = (league.get("fixtures") or league.get("matches") or {}).get("allMatches", [])
     now = datetime.now(timezone.utc)
+    save_fixtures(matches)
     since = now - timedelta(days=args.days)
 
     todo = []
