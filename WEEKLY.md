@@ -73,6 +73,14 @@ Règles :
 - `matchup` : forces/faiblesses de chaque équipe sur la saison (rangs parmi les 20). Utile pour
   expliquer un match (« la meilleure défense de la ligue a cédé sur coups de pied arrêtés, sa
   faiblesse : 19e »). Ne pas tout recopier, c'est affiché.
+- `composition` : système, coach, changements dans le onze par rapport au match précédent (avec
+  l'adversaire d'alors). Un onze très remanié ou un changement de système mérite une phrase.
+- `phases` (si WhoScored) : le match découpé aux changements de composition. Pour chaque phase :
+  système, entrants/sortants, part des passes, hauteur du bloc et des actions défensives, xG pour/contre.
+  C'est le meilleur matériau pour raconter le « travail du coach » (ex. « après le triple changement
+  de la 65e, United a créé 1,42 xG et n'en a concédé que 0,09 »).
+- `score_states` : comportement selon le score (mène / égalité / menée) : part des passes, hauteurs,
+  xG pour/contre par 90 min. Utile quand une équipe recule nettement après avoir ouvert le score.
 - `team_of_round` : l'équipe type est affichée automatiquement, pas besoin de la commenter.
 - Points forts : `players[*].profile.strengths`, `profile.similar` (profils proches),
   `profile.history` (notes match par match) (centiles saison par poste) quand ils expliquent

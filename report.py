@@ -626,6 +626,56 @@ def fig_goalkeepers(m, path):
     save(fig, path)
 
 
+def fig_phases(m, side, path):
+    """Une ligne par phase : avec le ballon (gauche) et sans le ballon (droite)."""
+    color, tint = (HOME, HOME_TINT) if side == "home" else (AWAY, AWAY_TINT)
+    ph = m["phases"][side]
+    n = len(ph)
+    pitch = new_pitch(pad_top=14, pad_bottom=1)
+    fig, axes = plt.subplots(n, 2, figsize=(FW * 1.25, FW * 0.47 * n + 0.2))
+    if n == 1:
+        axes = [axes]
+    for row, p in zip(axes, ph):
+        ax = row[0]
+        pitch.draw(ax=ax)
+        by = {x["name"]: x for x in p["nodes"]}
+        nmax = max([e["n"] for e in p["edges"]] + [1])
+        for e in p["edges"]:
+            a, b = by[e["a"]], by[e["b"]]
+            ax.plot([a["x"], b["x"]], [a["y"], b["y"]], color=tint, lw=0.6 + 3.4 * e["n"] / nmax,
+                    alpha=0.25 + 0.55 * e["n"] / nmax, zorder=3, solid_capstyle="round")
+        for x in p["nodes"]:
+            new = x.get("new")
+            pitch.scatter(x["x"], x["y"], s=150, ax=ax, facecolor=PITCH if new else color,
+                          edgecolor=color if new else SURFACE, linewidth=1.6, zorder=4)
+            ax.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=7, fontweight="bold",
+                    color=color if new else "white", zorder=5)
+        mt = p["metrics"]
+        ax.text(0, W + 10, f"{p['label']} · {p['formation'] or ''} · avec le ballon", fontsize=9.5,
+                fontweight="bold", color=color, va="center")
+        ax.text(0, W + 4, f"{mt['pass_share_pct']} % des passes · bloc {mt['possession_block_height_m'] or 0:.0f} m · "
+                f"xG {mt.get('xg_for', 0):.2f}".replace(".", ","), fontsize=8, color=MUTED, va="center")
+        bx = row[1]
+        pitch.draw(ax=bx)
+        if p["def_points"]:
+            xs, ys = zip(*p["def_points"])
+            pitch.scatter(xs, ys, s=10, ax=bx, facecolor=color, edgecolor="none", alpha=0.35, zorder=3)
+        for x in p["def_nodes"]:
+            new = x.get("new")
+            pitch.scatter(x["x"], x["y"], s=130, ax=bx, facecolor=PITCH if new else color,
+                          edgecolor=color if new else SURFACE, linewidth=1.6, zorder=4)
+            bx.text(x["x"], x["y"], str(x["number"]), ha="center", va="center", fontsize=7, fontweight="bold",
+                    color=color if new else "white", zorder=5)
+        h = mt["defensive_actions_avg_height_m"]
+        if h:
+            bx.plot([h, h], [0, W], color=TEXT, lw=0.8, ls=(0, (3, 3)), alpha=0.6, zorder=2)
+        bx.text(0, W + 10, "sans le ballon", fontsize=9.5, fontweight="bold", color=color, va="center")
+        bx.text(0, W + 4, f"actions déf. à {h or 0:.0f} m · xG concédés {mt.get('xg_against', 0):.2f}".replace(".", ","),
+                fontsize=8, color=MUTED, va="center")
+    fig.subplots_adjust(hspace=0.18, wspace=0.06)
+    save(fig, path)
+
+
 def fig_momentum(m, path):
     data = m["_momentum"]
     fig, ax = plt.subplots(figsize=(FW, FW * 0.46))
@@ -662,6 +712,36 @@ def fig_momentum(m, path):
 
 
 # ---------------------------------------------------------------- assemblage
+def composition(f, g, lineup, side):
+    """Dispositif et changements de onze par rapport au match précédent de l'équipe."""
+    team = g[f"{side}Team"]["name"]
+    cur = lineup.get(f"{side}Team", {})
+    cur_ids = {str(p["id"]): p["name"] for p in cur.get("starters", [])}
+    prev = None
+    for pf in sorted(f.parent.glob("*.json"), reverse=True):
+        if pf.name.endswith("_heatmap.json") or pf.name[:10] >= f.name[:10]:
+            continue
+        d = json.loads(pf.read_text())
+        gg = d["general"]
+        for s_ in ("home", "away"):
+            if gg[f"{s_}Team"]["name"] == team:
+                prev = (gg, d["content"].get("lineup", {}).get(f"{s_}Team", {}), "away" if s_ == "home" else "home")
+                break
+        if prev:
+            break
+    out = {"formation": cur.get("formation"), "coach": (cur.get("coach") or {}).get("name")}
+    if prev:
+        gg, pl, opp_side = prev
+        prev_ids = {str(p["id"]): p["name"] for p in pl.get("starters", [])}
+        out.update({
+            "previous_opponent": gg[f"{opp_side}Team"]["name"],
+            "previous_formation": pl.get("formation"),
+            "changes_in": [n for i, n in cur_ids.items() if i not in prev_ids],
+            "changes_out": [n for i, n in prev_ids.items() if i not in cur_ids],
+        })
+    return out
+
+
 def build_match(f, outdir, season, ctx):
     d, heat = load_match(f)
     g, c = d["general"], d["content"]
@@ -693,6 +773,16 @@ def build_match(f, outdir, season, ctx):
 
     ws = ws_analysis.load(f.parent, g["matchId"])
     struct = {s_: ws_analysis.team_analysis(ws, s_) for s_ in ("home", "away")} if ws else None
+    phases_ = states_ = None
+    if ws:
+        off = ws_analysis.fh_offset(ws)
+        fshots = [{"side": "home" if s_["teamId"] == home_id else "away", "xg": s_["expectedGoals"] or 0,
+                   "exp": ws_analysis.fotmob_expanded(s_["min"], s_.get("minAdded"), off)}
+                  for s_ in c.get("shotmap", {}).get("shots", []) if not s_.get("isOwnGoal")]
+        gexp = [(ws_analysis.fotmob_expanded(e.get("time"), e.get("overloadTime"), off), "home" if e.get("isHome") else "away")
+                for e in c.get("matchFacts", {}).get("events", {}).get("events", []) if e.get("type") == "Goal"]
+        phases_ = {s_: ws_analysis.phases(ws, s_, fshots) for s_ in ("home", "away")}
+        states_ = {s_: ws_analysis.score_states(ws, s_, gexp, fshots) for s_ in ("home", "away")}
     def gk_line(side):
         out = []
         for p in players[side]:
@@ -731,6 +821,9 @@ def build_match(f, outdir, season, ctx):
         "goals": sorted(goals_list(c, home_id), key=lambda x: x["sort"]),
         "substitutions": [{k: v for k, v in x.items() if not k.endswith("_id")} for x in subs],
         "goalkeepers": {s_: gk_line(s_) for s_ in ("home", "away")},
+        "phases": phases_,
+        "score_states": states_,
+        "composition": {s_: composition(f, g, lineup, s_) for s_ in ("home", "away")},
         "red_cards": cards_list(c),
         "attacking_zones": {s: c.get("attackingZones", {}).get(s, {}).get("total") for s in ("home", "away")},
         "momentum_phases": momentum_phases(c.get("momentum", {}).get("main", {}).get("data", [])),
@@ -787,6 +880,10 @@ def build_match(f, outdir, season, ctx):
                 p = outdir / f"{m['id']}_creation_{side}.webp"
                 fig_creation(m, side, struct[side]["creation"], p)
                 figs[f"creation_{side}"] = p.name
+                if m.get("phases"):
+                    p = outdir / f"{m['id']}_phases_{side}.webp"
+                    fig_phases(m, side, p)
+                    figs[f"phases_{side}"] = p.name
             continue
         p = outdir / f"{m['id']}_{name}.webp"
         fn(m, p)
