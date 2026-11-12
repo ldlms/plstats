@@ -1,0 +1,139 @@
+{
+ "intro": [
+  "19 buts, un seul 0-0 (Sunderland - Leeds) et quatre victoires à l'extérieur. Manchester City a perdu 2-1 à Aston Villa et Arsenal a battu Everton 2-0 : les deux équipes ont maintenant 21 points. Brighton a perdu 2-0 à Liverpool après quatre victoires sans encaisser de but. Bournemouth a gagné 3-0 à Manchester United.",
+  "Au regard du xG, Villa a battu City avec 0,61 xG contre 1,56, grâce à Zion Suzuki (6 arrêts, +1,68 but évité). Liverpool a gagné contre Brighton avec moins d'xG (1,20 contre 1,32), et Crystal Palace a perdu 2-0 contre Newcastle avec 1,59 xG contre 0,95. Forest n'a pas gagné à Ipswich malgré 2,29 xG contre 0,46. Le match marquant est Villa - City : Nicolas Jackson a marqué deux fois, et Gianluigi Donnarumma n'a fait aucun arrêt (note 4).",
+  "Forest est 18e avec 6 points, mais 3e au classement des xG (13,9 points « mérités »). Newcastle est dans le cas inverse : 8e avec 11 points, mais 20e d'après ses occasions (7,4 points)."
+ ],
+ "matches": {
+  "5795491": {
+   "headline": "Forest crée 2,29 xG à Ipswich et ne prend qu'un point",
+   "paragraphs": [
+    "Neco Williams a ouvert le score pour Forest à la 13e, servi par Daniel Muñoz. Julio Enciso a égalisé à la 41e, juste après un ballon récupéré haut par Ipswich. Neco Williams est sorti blessé à la 84e.",
+    "Forest a eu 2,29 xG contre 0,46, 17 tirs contre 7 et 4 grosses occasions, dont 3 ratées. En deuxième période, Ipswich n'a tiré qu'une fois (0,05 xG) quand Forest a tiré 11 fois. Morgan Gibbs-White a eu 0,76 xG sans marquer. Le manque d'efficacité est la grande faiblesse de Forest sur la saison (20e).",
+    "Avec et sans ballon : Forest a récupéré 23 ballons dans le camp adverse, contre 11 en moyenne avant ce match. Ipswich a construit par Exequiel Palacios, le joueur le plus impliqué (32 passes vers Florentino). Son but est venu d'un contre : ballon récupéré à 80,8 m de son but et tir dans la foulée. Après les changements de l'heure de jeu, Ipswich n'a créé que 0,05 xG et en a concédé 0,92."
+   ],
+   "keys": [
+    "Julio Enciso : 1 but, 6 dribbles réussis, homme du match (8,24).",
+    "Daniel Muñoz : 1 passe décisive (7,94).",
+    "Dara O'Shea : 5,93, la plus basse note du match."
+   ]
+  },
+  "5795486": {
+   "headline": "Nicolas Jackson et Zion Suzuki font tomber City",
+   "paragraphs": [
+    "Nicolas Jackson a ouvert le score à la 6e, servi par John McGinn, après un ballon récupéré tout près du but de City. Erling Haaland a égalisé à la 52e sur un coup de pied arrêté, servi par Iliman Ndiaye. Jackson a redonné l'avantage à Villa à la 60e, sur une passe d'Ibrahim Mbaye, entré une minute plus tôt.",
+    "City a dominé : 64 % de possession, 1,56 xG contre 0,61 et 56 touches dans la surface, contre 33 en moyenne avant ce match. Zion Suzuki a fait 6 arrêts et évité 1,68 but (8,55). Gianluigi Donnarumma n'a fait aucun arrêt, a commis une erreur menant à un but et a pris la note de 4 (−1,54 but évité).",
+    "Avec et sans ballon : Villa a défendu bas (bloc à 42,5 m de son but, actions défensives à 34,0 m) mais a pressé plus que d'habitude (PPDA 11,3 contre 16,8), avec 31 tacles contre 13. Mené pendant 83 minutes, City a eu 69 % des passes et 17 passes dans la surface de Villa. Après les entrées de Phil Foden et Rico Lewis à la pause, City a créé 1,02 xG, sans réussir à revenir. Enzo Maresca avait changé cinq joueurs dans son onze."
+   ],
+   "keys": [
+    "Nicolas Jackson : 2 buts, homme du match (8,87).",
+    "Zion Suzuki : 6 arrêts, +1,68 but évité (8,55).",
+    "Gianluigi Donnarumma : 4, la plus basse note du match."
+   ]
+  },
+  "5795485": {
+   "headline": "Arsenal maîtrise Everton grâce à ses défenseurs",
+   "paragraphs": [
+    "Ezri Konsa a ouvert le score dès la 7e sur corner, servi par Viktor Gyökeres. Gabriel a doublé la mise à la 68e, sur une passe de Ben White. Everton n'est jamais revenu.",
+    "Arsenal a eu 1,96 xG contre 0,63, dont 0,91 sur coups de pied arrêtés, avec 12 corners contre 3. Arsenal a tiré 20 fois, contre 12 en moyenne avant ce match, avec 47 touches dans la surface. Everton n'a créé aucun xG sur coup de pied arrêté. Mikel Merino a eu 0,52 xG sans marquer.",
+    "Avec et sans ballon : Everton a défendu plus bas que toutes les autres équipes de la journée (actions défensives à 30,8 m de son but, contre 38 d'habitude). Arsenal a pressé haut (PPDA 9,3 contre 12,2 d'habitude) et a construit par Martin Ødegaard, le plus impliqué (27 passes qui cassent les lignes, 31 passes vers Ben White). Declan Rice a créé 4 occasions. Après ses changements de la 72e et de la 74e, Everton a eu 53 % des passes mais seulement 0,24 xG."
+   ],
+   "keys": [
+    "Gabriel : 1 but, homme du match (8,86).",
+    "Ben White : 1 passe décisive, 3 occasions créées (8,14).",
+    "Vitaliy Mykolenko, sorti blessé à la 74e : 5,26, la plus basse note du match."
+   ]
+  },
+  "5795488": {
+   "headline": "Oscar Bobb débloque un match fermé sur corner",
+   "paragraphs": [
+    "Aucune équipe ne s'est créé de grosse occasion. Oscar Bobb a marqué le seul but à la 80e, sur un corner, servi par Joshua King. Il est sorti une minute plus tard.",
+    "Les xG sont presque égaux : 0,51 pour Coventry, 0,55 pour Fulham. Le but de Bobb ne valait que 0,06 xG. Fulham a eu 64 % du ballon et réussi 88 % de ses passes dans le jeu. Bernd Leno a fait 2 arrêts et évité 0,47 but. Coventry reste la dernière attaque de la ligue en xG créés (0,95 par match, 20e).",
+    "Avec et sans ballon : Coventry a laissé jouer Fulham (PPDA 24,3, le pressing le plus faible de la journée) mais a récupéré 16 ballons dans le camp adverse, contre 10 d'habitude. Fulham a fait circuler derrière : 34 passes de Calvin Bassey vers David Affengruber, le joueur le plus impliqué. Frank Lampard a gardé le même onze qu'au match précédent, puis a fait entrer quatre joueurs entre la 60e et la 67e, sans effet (0,15 xG ensuite)."
+   ],
+   "keys": [
+    "Oscar Bobb : 1 but, 4 occasions créées, homme du match (8,48).",
+    "Bernd Leno : 2 arrêts, +0,47 but évité (7,77).",
+    "Ephron Mason-Clark, entré à la 67e : 5,75, la plus basse note du match."
+   ]
+  },
+  "5795487": {
+   "headline": "Tottenham gagne à Chelsea sur une erreur et un contre",
+   "paragraphs": [
+    "0-0 jusqu'à la 77e, quand Mike Penders a marqué contre son camp sur un corner. Cole Palmer a été expulsé à la 80e (deuxième carton jaune). Mathys Tel a fixé le score à la 87e, après un ballon récupéré dans le camp de Tottenham.",
+    "Tottenham a eu 69 % de possession (60 % d'habitude) mais peu d'occasions : 0,74 xG contre 0,47, et une seule grosse occasion. Chelsea n'a tiré que 7 fois, contre 14 en moyenne avant ce match, avec 3 passes dans la surface. Antonín Kinský a fait 4 arrêts (+0,35 but évité). Penders, auteur d'une erreur menant à un but, a pris 4,95.",
+    "Avec et sans ballon : Xabi Alonso est passé à trois défenseurs (3-4-2-1 au lieu du 4-2-3-1). Chelsea a défendu plus haut que d'habitude (actions défensives à 44 m de son but contre 37) et a tiré 5 fois dans les 10 secondes après une récupération, sans marquer. Tottenham a construit patiemment par Mateus Fernandes, le plus impliqué (34 passes de Sandro Tonali vers lui, 27 passes qui cassent les lignes)."
+   ],
+   "keys": [
+    "Mathys Tel : 1 but, 4 dribbles réussis, homme du match (8,02).",
+    "Antonín Kinský : 4 arrêts, aucun but encaissé (7,95).",
+    "Mike Penders : 4,95, la plus basse note du match."
+   ]
+  },
+  "5795489": {
+   "headline": "Palace domine, Newcastle marque",
+   "paragraphs": [
+    "Crystal Palace a eu les meilleures occasions en première période, sans marquer. William Osula a ouvert le score juste après la pause (47e), servi par Jacob Murphy. Harvey Barnes a doublé la mise à la 58e sur une passe d'Amar Dedić, après un ballon récupéré haut.",
+    "Palace a eu 1,59 xG contre 0,95, dont 1,20 sur coups de pied arrêtés, et 17 tirs contre 10 d'habitude. Jean-Philippe Mateta a eu 0,80 xG sans marquer. Lukás Hornícek a fait 4 arrêts et évité 0,86 but (8,52). En face, Walter Benítez n'a fait aucun arrêt (−0,73 but évité, 5,57).",
+    "Avec et sans ballon : Newcastle a récupéré 25 ballons dans le camp adverse, contre 14 d'habitude, mais n'a réussi que 70 % de ses passes dans le jeu (82 % d'habitude). Matthias Jaissle avait changé cinq joueurs dans son onze. Après les trois changements de la 77e, Newcastle a reculé : 27 % des passes, actions défensives à 23,5 m de son but, et 0,24 xG concédé."
+   ],
+   "keys": [
+    "Lukás Hornícek : 4 arrêts, +0,86 but évité, homme du match (8,52).",
+    "Jacob Murphy : 1 passe décisive, 4 occasions créées (8,12).",
+    "Walter Benítez : 5,57, la plus basse note du match."
+   ]
+  },
+  "5795490": {
+   "headline": "Hull tient le nul grâce à Konstantinos Tzolakis",
+   "paragraphs": [
+    "Oli McBurnie a ouvert le score sur penalty à la 24e. Dango Ouattara a égalisé à la 63e, servi par Igor Thiago.",
+    "Hull a mieux fini la première période (0,93 xG contre 0,41), Brentford a pris le dessus après la pause (1,33 xG contre 0,64). Au total, 1,74 xG pour Brentford contre 1,57. Konstantinos Tzolakis a fait 5 arrêts (+0,68 but évité). Hull a eu 42 % du ballon et 32 touches dans la surface, contre 32 % et 16 en moyenne avant ce match.",
+    "Avec et sans ballon : Brentford a pressé plus fort que toutes les autres équipes de la journée (PPDA 7,9) et a construit autour de Mamadou Sangaré, le plus impliqué (26 passes qui cassent les lignes, 11 ballons récupérés). Hull, en 5-4-1, a pressé plus que d'habitude (PPDA 12,0 contre 18,9). Une fois devant, il n'a eu que 29 % des passes."
+   ],
+   "keys": [
+    "Dango Ouattara : 1 but, 3 occasions créées, homme du match (8,14).",
+    "Michael Kayode : 4 occasions créées (8,04).",
+    "Ryan Giles : 5,03, la plus basse note du match."
+   ]
+  },
+  "5795492": {
+   "headline": "Liverpool frappe deux fois en quatre minutes et arrête Brighton",
+   "paragraphs": [
+    "Pascal Groß a marqué contre son camp à la 17e. Quatre minutes plus tard, Alexander Isak a fait 2-0, servi par Bradley Barcola après un ballon récupéré près du but de Brighton. Brighton restait sur quatre victoires sans encaisser de but.",
+    "Brighton a eu 64 % du ballon et un peu plus d'xG (1,32 contre 1,20), mais n'a cadré qu'un tir (0,09 xGOT). Liverpool a cadré 4 tirs (1,25 xGOT). Cody Gakpo a eu 0,56 xG sans marquer. Brighton a perdu Ferdi Kadıoğlu, blessé dès la 6e, puis Chema Andrés à la 54e. Liverpool a perdu Florian Wirtz, blessé à la 65e.",
+    "Avec et sans ballon : Liverpool a joué autrement que d'habitude. 36 % de possession contre 56 %, PPDA 17,3 contre 9,9, actions défensives à 34 m de son but contre 41. Les deux buts sont venus de ballons pris haut : Liverpool a tiré 5 fois dans les 10 secondes après une récupération. Brighton a tout fait passer par Pascal Groß, le plus impliqué (30 passes qui cassent les lignes, 4 occasions créées), avec 39 touches dans la surface contre 27 d'habitude."
+   ],
+   "keys": [
+    "Alexander Isak : 1 but, 3 occasions créées, homme du match (7,95).",
+    "Ronald Araujo : 12 passes qui cassent les lignes (7,95).",
+    "Olivier Boscagli, remplacé à la pause : 4,51, la plus basse note du match."
+   ]
+  },
+  "5795493": {
+   "headline": "Bournemouth étouffe Manchester United",
+   "paragraphs": [
+    "Rayan a ouvert le score à la 38e sur un coup de pied arrêté, servi par Justin Kluivert. Marcus Tavernier a fait 2-0 à la 43e, sur une passe d'Adrien Truffert. Evanilson a conclu à la 71e, servi par Lewis Cook, après un ballon récupéré dans le camp de United.",
+    "United a eu 63 % du ballon et 17 tirs, mais aucune grosse occasion et seulement 0,34 xGOT. Bournemouth a eu 6 grosses occasions et 2,15 xG contre 1,17. En deuxième période, United a eu 71 % du ballon et 14 tirs pour 0,14 xGOT. Senne Lammens, auteur d'une erreur menant à un but, a pris 4,75.",
+    "Avec et sans ballon : Bournemouth a récupéré 35 ballons dans le camp adverse, le plus haut total de la journée (20 d'habitude), avec 37 % de possession seulement. James Hill a tenu la défense (11 tacles et interceptions). United a construit par ses défenseurs (31 passes de Harry Maguire vers Leny Yoro). Entré à la 65e, Lisandro Martínez a créé 0,66 xA en 25 minutes."
+   ],
+   "keys": [
+    "James Hill : 11 tacles et interceptions, homme du match (8,77).",
+    "Rayan : 1 but, 0,91 xG (8,55).",
+    "Senne Lammens : 4,75, la plus basse note du match."
+   ]
+  },
+  "5795494": {
+   "headline": "Deux gardiens en forme, aucun but",
+   "paragraphs": [
+    "Seul 0-0 de la journée. Sunderland a eu la meilleure occasion en première période, Leeds a raté ses 2 grosses occasions après la pause. Sean Longstaff, entré à la 89e, a encore eu 0,32 xG dans les derniers instants.",
+    "Les xG sont proches : 0,83 pour Sunderland, 0,76 pour Leeds. James Trafford a fait 4 arrêts et évité 0,85 but (8,46), Robin Roefs 3 arrêts et 0,84 but évité. Sunderland, dernier avec 5 points, a concédé 0,76 xG contre 2,04 en moyenne avant ce match, après quatre défaites de suite.",
+    "Avec et sans ballon : Sunderland a défendu bas (actions défensives à 32,6 m de son but, 38 d'habitude) et a construit par Granit Xhaka, le plus impliqué (15 passes qui cassent les lignes). Leeds a pressé plus fort (PPDA 10,5 contre 15,4). Après les entrées de Chemsdine Talbi et Habib Diarra (79e), Leeds a créé 0,39 xG, Sunderland 0,11."
+   ],
+   "keys": [
+    "James Trafford : 4 arrêts, +0,85 but évité, homme du match (8,46).",
+    "Robin Roefs : 3 arrêts, +0,84 but évité (7,87).",
+    "Dominic Calvert-Lewin : 5,74, la plus basse note du match."
+   ]
+  }
+ }
+}
