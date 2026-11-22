@@ -1002,77 +1002,77 @@
 {
 "id": "5795522",
 "round": "11",
-"utc": "2026-11-21T12:30:00.000Z",
+"utc": "2026-11-21T12:30:00Z",
 "home": "Manchester City",
 "away": "Fulham",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "1 - 1"
 },
 {
 "id": "5795515",
 "round": "11",
-"utc": "2026-11-21T15:00:00.000Z",
+"utc": "2026-11-21T15:00:00Z",
 "home": "AFC Bournemouth",
 "away": "Nottingham Forest",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "2 - 0"
 },
 {
 "id": "5795516",
 "round": "11",
-"utc": "2026-11-21T15:00:00.000Z",
+"utc": "2026-11-21T15:00:00Z",
 "home": "Aston Villa",
 "away": "Sunderland",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "0 - 0"
 },
 {
 "id": "5795518",
 "round": "11",
-"utc": "2026-11-21T15:00:00.000Z",
+"utc": "2026-11-21T15:00:00Z",
 "home": "Chelsea",
 "away": "Leeds United",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "1 - 4"
 },
 {
 "id": "5795519",
 "round": "11",
-"utc": "2026-11-21T15:00:00.000Z",
+"utc": "2026-11-21T15:00:00Z",
 "home": "Coventry City",
 "away": "Crystal Palace",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "3 - 2"
 },
 {
 "id": "5795524",
 "round": "11",
-"utc": "2026-11-21T15:00:00.000Z",
+"utc": "2026-11-21T15:00:00Z",
 "home": "Tottenham Hotspur",
 "away": "Ipswich Town",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "2 - 0"
 },
 {
 "id": "5795523",
 "round": "11",
-"utc": "2026-11-21T17:30:00.000Z",
+"utc": "2026-11-21T17:30:00Z",
 "home": "Newcastle United",
 "away": "Arsenal",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "2 - 2"
 },
 {
 "id": "5795520",
 "round": "11",
-"utc": "2026-11-22T14:00:00Z",
+"utc": "2026-11-22T14:00:00.000Z",
 "home": "Hull City",
 "away": "Brighton & Hove Albion",
 "finished": false,
@@ -1082,7 +1082,7 @@
 {
 "id": "5795521",
 "round": "11",
-"utc": "2026-11-22T16:30:00Z",
+"utc": "2026-11-22T16:30:00.000Z",
 "home": "Liverpool",
 "away": "Manchester United",
 "finished": false,
