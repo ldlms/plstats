@@ -1,75 +1,25 @@
 {
-  "run_at": "2026-11-22T06:00:04.136706+00:00",
+  "run_at": "2026-11-23T06:00:03.829907+00:00",
   "matches": [
     {
-      "id": "5795522",
+      "id": "5795520",
       "round": "11",
-      "kickoff_utc": "2026-11-21T12:30:00Z",
-      "home": "Manchester City",
-      "away": "Fulham",
-      "score": "1 - 1",
-      "file": "data/matches/2026-27/2026-11-21_manchester-city-fulham_5795522.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_manchester-city-fulham_5795522_heatmap.json"
-    },
-    {
-      "id": "5795515",
-      "round": "11",
-      "kickoff_utc": "2026-11-21T15:00:00Z",
-      "home": "AFC Bournemouth",
-      "away": "Nottingham Forest",
+      "kickoff_utc": "2026-11-22T14:00:00Z",
+      "home": "Hull City",
+      "away": "Brighton & Hove Albion",
       "score": "2 - 0",
-      "file": "data/matches/2026-27/2026-11-21_afc-bournemouth-nottingham-forest_5795515.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_afc-bournemouth-nottingham-forest_5795515_heatmap.json"
+      "file": "data/matches/2026-27/2026-11-22_hull-city-brighton-hove-albion_5795520.json",
+      "heatmap": "data/matches/2026-27/2026-11-22_hull-city-brighton-hove-albion_5795520_heatmap.json"
     },
     {
-      "id": "5795516",
+      "id": "5795521",
       "round": "11",
-      "kickoff_utc": "2026-11-21T15:00:00Z",
-      "home": "Aston Villa",
-      "away": "Sunderland",
-      "score": "0 - 0",
-      "file": "data/matches/2026-27/2026-11-21_aston-villa-sunderland_5795516.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_aston-villa-sunderland_5795516_heatmap.json"
-    },
-    {
-      "id": "5795518",
-      "round": "11",
-      "kickoff_utc": "2026-11-21T15:00:00Z",
-      "home": "Chelsea",
-      "away": "Leeds United",
-      "score": "1 - 4",
-      "file": "data/matches/2026-27/2026-11-21_chelsea-leeds-united_5795518.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_chelsea-leeds-united_5795518_heatmap.json"
-    },
-    {
-      "id": "5795519",
-      "round": "11",
-      "kickoff_utc": "2026-11-21T15:00:00Z",
-      "home": "Coventry City",
-      "away": "Crystal Palace",
-      "score": "3 - 2",
-      "file": "data/matches/2026-27/2026-11-21_coventry-city-crystal-palace_5795519.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_coventry-city-crystal-palace_5795519_heatmap.json"
-    },
-    {
-      "id": "5795524",
-      "round": "11",
-      "kickoff_utc": "2026-11-21T15:00:00Z",
-      "home": "Tottenham Hotspur",
-      "away": "Ipswich Town",
-      "score": "2 - 0",
-      "file": "data/matches/2026-27/2026-11-21_tottenham-hotspur-ipswich-town_5795524.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_tottenham-hotspur-ipswich-town_5795524_heatmap.json"
-    },
-    {
-      "id": "5795523",
-      "round": "11",
-      "kickoff_utc": "2026-11-21T17:30:00Z",
-      "home": "Newcastle United",
-      "away": "Arsenal",
-      "score": "2 - 2",
-      "file": "data/matches/2026-27/2026-11-21_newcastle-united-arsenal_5795523.json",
-      "heatmap": "data/matches/2026-27/2026-11-21_newcastle-united-arsenal_5795523_heatmap.json"
+      "kickoff_utc": "2026-11-22T16:30:00Z",
+      "home": "Liverpool",
+      "away": "Manchester United",
+      "score": "4 - 0",
+      "file": "data/matches/2026-27/2026-11-22_liverpool-manchester-united_5795521.json",
+      "heatmap": "data/matches/2026-27/2026-11-22_liverpool-manchester-united_5795521_heatmap.json"
     }
   ]
 }

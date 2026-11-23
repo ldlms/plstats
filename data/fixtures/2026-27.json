@@ -1072,27 +1072,27 @@
 {
 "id": "5795520",
 "round": "11",
-"utc": "2026-11-22T14:00:00.000Z",
+"utc": "2026-11-22T14:00:00Z",
 "home": "Hull City",
 "away": "Brighton & Hove Albion",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "2 - 0"
 },
 {
 "id": "5795521",
 "round": "11",
-"utc": "2026-11-22T16:30:00.000Z",
+"utc": "2026-11-22T16:30:00Z",
 "home": "Liverpool",
 "away": "Manchester United",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "4 - 0"
 },
 {
 "id": "5795517",
 "round": "11",
-"utc": "2026-11-23T20:00:00Z",
+"utc": "2026-11-23T20:00:00.000Z",
 "home": "Brentford",
 "away": "Everton",
 "finished": false,
