@@ -1092,12 +1092,12 @@
 {
 "id": "5795517",
 "round": "11",
-"utc": "2026-11-23T20:00:00.000Z",
+"utc": "2026-11-23T20:00:00Z",
 "home": "Brentford",
 "away": "Everton",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "4 - 0"
 },
 {
 "id": "5795533",
