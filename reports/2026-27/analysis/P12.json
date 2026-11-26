@@ -1,0 +1,48 @@
+{
+ "intro": [
+  "L'affiche de la journée est Arsenal–Manchester City dimanche : le leader (28 points, cinq victoires en cinq matchs à domicile), qui concède le moins d'xG de la ligue, reçoit l'équipe qui en crée le plus. Mais City n'a gagné aucun de ses quatre derniers matchs. Brighton–Newcastle est le match le plus déséquilibré selon les occasions (54 % pour Brighton, 24 % pour Newcastle), Ipswich–Aston Villa le plus serré (38 % de chaque côté).",
+  "Une tendance : plusieurs classements trompent. Forest (17e) et Sunderland (18e) sont 6e et 10e d'après leurs occasions, alors que Hull (11e) est dernier sur ce critère. À suivre aussi : Bournemouth, cinq victoires de suite, se déplace à Fulham, et Liverpool, invaincu à l'extérieur, va à Everton."
+ ],
+ "matches": {
+  "5795525": {
+   "headline": "La défense la plus fermée face à l'attaque qui crée le plus",
+   "paragraph": "Arsenal, 1er avec 28 points, a gagné ses cinq matchs à domicile (10 buts marqués, 2 encaissés) et concède le moins d'xG de la ligue (0,85 par match). Manchester City, 3e avec 22 points, est 1er en xG créés (2,0 par match), en qualité des tirs et en touches dans la surface adverse, mais n'a gagné aucun de ses quatre derniers matchs (trois défaites, un nul). La projection penche légèrement pour Arsenal (41 % contre 34 %), qui attaque surtout à droite (42 % de ses attaques), un côté par lequel City se fait souvent attaquer (38 %)."
+  },
+  "5795526": {
+   "headline": "Le match le plus déséquilibré : Brighton, intraitable à domicile",
+   "paragraph": "Brighton, 2e avec 22 points, a pris 13 points sur 15 à domicile (15 buts marqués, 1 encaissé) ; il est 1er en grosses occasions et en intensité du pressing, et 2e en xG créés. Newcastle, 13e, est 18e en xG créés, en grosses occasions et en tirs concédés, et 18e en contres subis face à une équipe 2e en contre-attaques. Brighton est favori d'après les occasions (54 % contre 24 %), même s'il reste sur une défaite 0-2 à Hull."
+  },
+  "5795533": {
+   "headline": "Forest, mieux que son classement, face aux faiblesses de Chelsea sur coups de pied arrêtés",
+   "paragraph": "Forest n'est que 17e avec 9 points, mais 6e d'après ses occasions : 2e en tirs concédés et 3e en xG sur coups de pied arrêtés, il est en revanche l'équipe la moins efficace devant le but (20e). Chelsea, 8e avec 16 points, est 19e en xG concédés sur coups de pied arrêtés et 18e en grosses occasions concédées, mais 1er en efficacité ; il reste sur une défaite 1-4 contre Leeds. Forest est favori d'après les occasions (49 % contre 27 %)."
+  },
+  "5795531": {
+   "headline": "La défense de Leeds face à l'une des attaques les plus faibles de la ligue",
+   "paragraph": "Coventry n'est que 19e en xG créés et en grosses occasions, face à une défense de Leeds 3e en xG concédés et 4e en grosses occasions concédées. Leeds, 7e avec 17 points, est invaincu à domicile (2 victoires, 3 nuls, 3 buts encaissés) et vient de gagner 4-1 à Chelsea ; Coventry n'a pris que 3 points à l'extérieur (1 victoire, 4 défaites). Leeds est favori d'après les occasions (49 % contre 25 %)."
+  },
+  "5795532": {
+   "headline": "Les coups de pied arrêtés de Brentford, point faible de United",
+   "paragraph": "Brentford est 2e en xG sur coups de pied arrêtés et United 18e pour ceux qu'il concède ; dans l'autre sens, United n'est que 19e sur coups de pied arrêtés, face à une défense de Brentford 3e. United, 19e avec 8 points, est 1er en passes menant à un tir mais dernier en qualité des tirs et en grosses occasions concédées, et reste sur une défaite 0-4 à Liverpool. La projection donne un léger avantage à Brentford (40 % contre 37 %), pourtant sans victoire à l'extérieur (4 nuls, 1 défaite)."
+  },
+  "5795530": {
+   "headline": "Rien ne sépare Ipswich et Aston Villa selon les occasions",
+   "paragraph": "La projection ne départage pas les deux équipes (38 % chacune, 1,6 xG attendu de part et d'autre). Ipswich, 16e, n'a gagné aucun de ses cinq derniers matchs (2 nuls, 3 défaites) et concède beaucoup (2,0 xG par match, 19e en contres subis). Aston Villa, 12e, est invaincu lors de ses cinq derniers matchs (2 victoires, 3 nuls) mais concède lui aussi (17e en xG concédés) ; il est 3e en buts évités par le gardien, avec Zion Suzuki."
+  },
+  "5795528": {
+   "headline": "Liverpool, invaincu à l'extérieur, face à un Everton solide chez lui",
+   "paragraph": "Liverpool, 4e avec 21 points, est invaincu à l'extérieur (4 victoires, 1 nul) et 1er en contre-attaques et en ballons récupérés dans le camp adverse. Everton, 9e, a pris 10 points sur 15 à domicile mais reste sur une défaite 0-4 à Brentford ; il attaque surtout à gauche (43 % de ses attaques), le côté par lequel Liverpool se fait le plus attaquer (45 %). La projection penche pour Liverpool (43 % contre 33 %)."
+  },
+  "5795527": {
+   "headline": "Palace, dernier, face à un Hull mieux classé que ses occasions",
+   "paragraph": "Crystal Palace, 20e avec 7 points, a perdu ses cinq derniers matchs et concède plus que quiconque (20e en xG concédés, en tirs concédés et en contres subis). Hull est 11e avec 14 points mais dernier d'après ses occasions (20e en xG créés et en grosses occasions, 33 % de possession en moyenne) ; il est invaincu à domicile, mais n'a gagné qu'une fois en cinq déplacements. La projection est serrée (39 % pour Palace, 37 % pour Hull), et Palace est 4e en grosses occasions, face à une défense de Hull 16e pour celles qu'elle concède."
+  },
+  "5795529": {
+   "headline": "Bournemouth, cinq victoires de suite, face à un Fulham qui crée peu",
+   "paragraph": "Bournemouth, 5e avec 18 points et 3e d'après ses occasions, a gagné ses cinq derniers matchs ; il est 1er en contres subis et 2e en grosses occasions et en qualité des tirs. Fulham, 15e, n'est que 16e en grosses occasions et 17e en efficacité, et a laissé filer 10 points dans des matchs où il menait. La projection penche pour Bournemouth (42 % contre 33 %)."
+  },
+  "5795534": {
+   "headline": "Tottenham a le ballon, Sunderland peine à marquer",
+   "paragraph": "Tottenham a le ballon (62,7 % en moyenne), presse fort (2e en intensité du pressing) et concède peu (2e en xG concédés), mais ses tirs sont de faible qualité (19e en xG par tir). Sunderland, 18e avec 9 points, est 10e d'après ses occasions, mais n'a marqué que 8 buts (19e en efficacité), dont 2 seulement en cinq matchs à domicile. La projection ne départage presque pas les deux équipes (37 % contre 38 %)."
+  }
+ }
+}
