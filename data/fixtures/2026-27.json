@@ -1102,17 +1102,17 @@
 {
 "id": "5795533",
 "round": "12",
-"utc": "2026-11-27T20:00:00.000Z",
+"utc": "2026-11-27T20:00:00Z",
 "home": "Nottingham Forest",
 "away": "Chelsea",
-"finished": false,
+"finished": true,
 "cancelled": false,
-"score": null
+"score": "3 - 2"
 },
 {
 "id": "5795531",
 "round": "12",
-"utc": "2026-11-28T15:00:00Z",
+"utc": "2026-11-28T15:00:00.000Z",
 "home": "Leeds United",
 "away": "Coventry City",
 "finished": false,
@@ -1122,7 +1122,7 @@
 {
 "id": "5795532",
 "round": "12",
-"utc": "2026-11-28T15:00:00Z",
+"utc": "2026-11-28T15:00:00.000Z",
 "home": "Manchester United",
 "away": "Brentford",
 "finished": false,
@@ -1132,7 +1132,7 @@
 {
 "id": "5795530",
 "round": "12",
-"utc": "2026-11-28T17:30:00Z",
+"utc": "2026-11-28T17:30:00.000Z",
 "home": "Ipswich Town",
 "away": "Aston Villa",
 "finished": false,
